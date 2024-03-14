@@ -29,27 +29,24 @@ Class_fun::Class_fun(const string& n, const vector<vector<Function>>& t)
 	if (!usage::is_identifier(n)) throw string("Class_fun::Class_fun:" + mark_string(n) + "不是合法的类名");
 }
 
-string Class_fun::str() const
+string Class_fun::str(unsigned int count) const
 {
 	if (this->empty()) return "";
 	string res = Class_Str_Sta + _name + Class_Str_End + "\n\n";
 	if (!_funs[0].empty()) {
 		res += Print_Str_Sta + "public" + Print_Str_End + "\n\n";
 		for (auto i = _funs[0].begin(); i != _funs[0].end(); i++)
-			res += i->str_class(_name);
-		res += "\n";
+			res += i->str_class(_name, count) + "\n";
 	}
 	if (!_funs[1].empty()) {
 		res += Print_Str_Sta + "protected" + Print_Str_End + "\n\n";
 		for (auto i = _funs[1].begin(); i != _funs[1].end(); i++)
-			res += i->str_class(_name);
-		res += "\n";
+			res += i->str_class(_name, count) + "\n";
 	}
 	if (!_funs[2].empty()) {
 		res += Print_Str_Sta + "private" + Print_Str_End + "\n\n";
 		for (auto i = _funs[2].begin(); i != _funs[2].end(); i++)
-			res += i->str_class(_name);
-		res += "\n";
+			res += i->str_class(_name, count) + "\n";
 	}
 	return res;
 }
@@ -58,6 +55,12 @@ bool Class_fun::empty() const
 {
 	return _name.empty();
 }
+
+void Class_fun::print(ostream& os, unsigned int count) const
+{
+	os << this->str(count);
+}
+
 
 
 // ------------------------ 重载 -----------------------------

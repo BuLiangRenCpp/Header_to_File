@@ -12,8 +12,10 @@ public:
 	Class_fun(const string& n, const vector<vector<Function>>& t);
 
 	// 返回成员函数的定义语句
-	string str() const;
+	string str(unsigned int count = 0) const;
 	bool empty() const;
+	// 格式化输出，按缩进输出
+	void print(ostream& os, unsigned int count = 1) const;
 
 private:
 	string _name = "";		// 类名

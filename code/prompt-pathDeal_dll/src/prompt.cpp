@@ -29,6 +29,7 @@ static void delete_head(string& s)
 	s.replace(0, index + 1, "");
 }
 
+
 // 返回颜色
 static string ret_color(int flag) 
 {
@@ -55,6 +56,14 @@ static string ret_color(int flag)
     return color;
 }
 
+// 返回 s 的双引号的下标
+static pair<int, int> ret_index(const string& s)
+{
+    int fi = (s.find('"') == string::npos) ? -1 : s.find('"');
+    int se = (s.rfind('"') == string::npos) ? -1 : s.rfind('"');
+    return make_pair(fi, se);
+}
+
 
 namespace prompt{  
     void prompt()
@@ -73,47 +82,74 @@ namespace prompt{
 
     void print_enter(const string& s)
     {
-        cout << Enter_Str << GREEN + s << ": " + RESET;
+        pair<int, int> indexs = ret_index(s);
+        string res = GREEN;
+        if (indexs.first == -1 || indexs.second == -1) res += s;
+        else {
+            res += s.substr(0, indexs.first + 1);
+            res += BLUE + s.substr(indexs.first + 1, indexs.second - indexs.first - 1) + GREEN + s.substr(indexs.second);
+        } // 0 1 2 3
+        cout << Enter_Str + res << ": " + RESET;
     }
 
     void print_result(const string& s, bool is_line)
     {
-        cout << Result_Str << GREEN + s + RESET;
+        pair<int, int> indexs = ret_index(s);
+        string res = GREEN;
+        if (indexs.first == -1 || indexs.second == -1) res += s;
+        else {
+            res += s.substr(0, indexs.first + 1);
+            res += BLUE + s.substr(indexs.first + 1, indexs.second - indexs.first - 1) + GREEN + s.substr(indexs.second);
+        }
+        cout << Result_Str << res + RESET;
         if (is_line) cout << endl;
     }
 
     void print_warn(string s, bool is_user, bool is_line)
     {
         if (is_user) delete_head(s);
-        cout << Warn_Str << YELLOW + s + RESET;
+        pair<int, int> indexs = ret_index(s);
+        string res = YELLOW;
+        if (indexs.first == -1 || indexs.second == -1) res += s;
+        else {
+            res += s.substr(0, indexs.first + 1);
+            res += BLUE + s.substr(indexs.first + 1, indexs.second - indexs.first - 1) + YELLOW + s.substr(indexs.second);
+        }
+        cout << Warn_Str << res + RESET;
         if (is_line) cout << endl;
     }
 
     void print_error(string s, bool is_user, bool is_line)
     {
         if (is_user) delete_head(s);
-        cerr << Error_Str << RED + s + RESET;
+        pair<int, int> indexs = ret_index(s);
+        string res = RED;
+        if (indexs.first == -1 || indexs.second == -1) res += s;
+        else {
+            res += s.substr(0, indexs.first + 1);
+            res += BLUE + s.substr(indexs.first + 1, indexs.second - indexs.first - 1) + RED + s.substr(indexs.second);
+        }
+        cerr << Error_Str << res + RESET;
         if (is_line) cout << endl;
     }
 
-
-    string mark_string(const string& s, const string& c, int flag)
+    void print_indentation(ostream& os, int count)
     {
-        string color = ret_color(flag);
-        if (color == "") throw string("prompt::mark_string: flag参数只能取 1、0、-1");
-        return (" " + c + BLUE + s + color + c + " ");
+        for (int i = 0; i < count; i++) os << "\t";
     }
 
-    string mark_char(char s, char c, int flag)
+
+    string mark_string(const string& s, const string& c)
     {
-        string color = ret_color(flag);
-        if (color == "") throw string("prompt::mark_char: flag参数只能取 1、0、-1");
+        return (" " + c + s + c + " ");
+    }
+
+    string mark_char(char s, char c)
+    {
         if (s == '\"') c = '\'';
         string res = " ";
         res += c;
-        res += BLUE;
         res += s;
-        res += color;
         res += c;
         res += ' ';
         return res;

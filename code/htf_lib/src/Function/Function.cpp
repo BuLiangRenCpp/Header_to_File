@@ -2,7 +2,7 @@
 
 using namespace prompt;
 
-static const string FUN_END_STR = "\n{\n\n}\n\n";
+static const string FUN_END_STR = "\n{\n\n}\n";
 
 
 static bool is_construct_fun(const Type& t, const vector<Fun_arg>& ps)
@@ -55,7 +55,7 @@ Type Function::type() const
 	return _type;
 }
 
-string Function::str() const
+string Function::str(unsigned int count) const
 {
 	if (this->is_sepcial())
 		throw string("Function::str: 此函数是特殊函数(类的构造函数或者析构函数)，请使用" + mark_string("str_class()") + "调用");
@@ -67,10 +67,13 @@ string Function::str() const
 		if (i < size - 1) ps += ", ";
 	}
 	string const_str = (_have_const) ? "const" : "";
-	return (_type.str() + " " + _name.str() + "(" + ps + ")" + " " + const_str + FUN_END_STR);
+	string indentation(count, '\t');
+	string res = (indentation + _type.str() + " " + _name.str() + "(" + ps + ")" + " " + const_str + "\n");
+	res += indentation + "{" + "\n\n" + indentation + "}\n";
+	return res;
 }
 
-string Function::str_class(const string& name) const
+string Function::str_class(const string& class_name, unsigned int count) const
 {
 	if (this->empty()) return "";
 	string ps;
@@ -79,15 +82,17 @@ string Function::str_class(const string& name) const
 		ps += _pars[i].str();
 		if (i < size - 1) ps += ", ";
 	}
-	string res;
+	string indentation(count, '\t');
+	string res = indentation;
 	if (this->is_sepcial()) {
 		string t = (_is_construct) ? "~" + _type.str() : _type.str();
-		res = name + "::" + t + "(" + ps + ")" + " " + FUN_END_STR;
+		res = class_name + "::" + t + "(" + ps + ")" + " ";
 	}
 	else {
 		string const_str = (_have_const) ? "const" : "";
-		res = (_type.str() + " " + name + "::" + _name.str() + "(" + ps + ")" + " " + const_str + FUN_END_STR);
+		res = _type.str() + " " + class_name + "::" + _name.str() + "(" + ps + ")" + " " + const_str;
 	}
+	res += "\n" + indentation + "{" + "\n\n" + indentation + "}\n";
 	return res;
 }
 
@@ -99,6 +104,11 @@ bool Function::empty() const
 bool Function::is_sepcial() const
 {
 	return (!this->empty()) && _name.empty();
+}
+
+void Function::print(ostream& os, unsigned int count) const
+{
+	os << this->str(count);
 }
 
 // ------------------------ 重载 -----------------------------

@@ -65,7 +65,7 @@ Token Token_stream::get(istream& is)
 	while (true) {		// 避免跳过空行，记录行数
 		char c;
 		is >> noskipws >> c;
-		if (is.eof()) return Token{ NULL_KIND };
+		if (is.eof()) return Token{};
 		if (c == '\n') _line++;
 		if (!isspace(c)) {
 			is.putback(c);

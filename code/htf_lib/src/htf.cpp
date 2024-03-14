@@ -13,7 +13,7 @@ static void clear_mess(istream& is)
 static bool is_write_file()
 {
     while (true) {
-        print_enter(mark_char('y', '"', 1) + "or" + mark_char('n', '"', 1));
+        print_enter("\"" + mark_char('y') + "or" + mark_char('n') + "\"");
         string line;
         getline(cin, line);
         usage::delete_space_pre_suf(line);
@@ -23,6 +23,87 @@ static bool is_write_file()
         }
     }
     return false;
+}
+
+// *******************************************************************************************
+// ************ 特殊用途，针对 rw_file *************
+struct Bras {
+    stack<char> brackets;       // {} 嵌套判断，确定缩进
+    bool write_success;         // 用于判断文件是否写入成功
+    Bras() :brackets{ }, write_success{ false } { }
+};
+// *************************************************
+
+
+// *********************************************************************************************
+
+// 读写函数、类
+static bool rw_function(istream& ifs, ostream& ofs, int count)
+{
+    if (count < 0) count = 0;
+
+    Function f;
+    Class_fun cf;
+
+    bool write_success = false;     // 是否写入成功
+
+    while (TS.peek(ifs).val != "namespace" && TS.peek(ifs) != '}' && !TS.eof(ifs))
+    try{
+        ifs >> cf;          // 先是类再是类外函数，注意顺序
+        if (cf.empty()) {
+            ifs >> f;
+            if (f.empty()) clear_mess(ifs);        // 都不是函数
+            else {
+                f.print(ofs, count);
+                ofs << endl;
+                write_success = true;
+            }
+        }
+        else {
+            cf.print(ofs, count);
+            ofs << endl;
+            write_success = true;
+        }
+    }
+    catch (string& e)
+    {
+#ifdef USER
+        print_warn(mark_string("line " + to_string(TS.line())) + " " + e);
+#else
+        print_warn(mark_string("line " + to_string(TS.line())) + " " + e, false);           // 开发者模式
+#endif
+        clear_mess(ifs);
+    }
+    
+    return write_success;
+}
+
+// 读写文件，增加识别 namespace 的功能
+static void rw_file(Bras& t, istream& ifs, ostream& ofs)
+{
+    if (TS.eof(ifs)) return;
+    Identifier name;
+    if (TS.peek(ifs).val == "namespace") {          // --- 区分 namespace FS = ...
+        TS.get(ifs);
+        name = Identifier{ (TS.get(ifs).val) };
+        if (TS.peek(ifs).kind != '{')
+            clear_mess(ifs);
+        else {
+            t.brackets.push('{');
+            print_indentation(ofs, t.brackets.size() - 1);
+            ofs << "namespace " << name << " " << TS.get(ifs).kind << endl;
+        }
+    } 
+    bool flag = rw_function(ifs, ofs, t.brackets.size());
+    if (t.write_success == false && flag == true) t.write_success = true;       // 只要依次写入成功就行
+    if (TS.peek(ifs).kind == '}') {
+        print_indentation(ofs, t.brackets.size() - 1);
+        ofs << TS.get(ifs).kind << endl << endl;
+        if (t.brackets.empty())
+            throw string("namespace " + name.str() + " 缺少" + mark_char('}'));
+        t.brackets.pop();
+    }
+    rw_file(t, ifs, ofs);
 }
 
 
@@ -51,43 +132,16 @@ namespace htf {
         ofs << "#include";
         ofs << " \"" << file_name(ifile) << "\"" << "\n\n" << endl;
 
-        Function f;
-        Class_fun cf;
-        bool write_success = false;       // 记录是否成功写入文件
-        bool warn_flag = true;      // 用于只执行一次 print_warn
-        int warn_count = 0;
-        while (!ifs.eof()) 
-        try{
-            ifs >> cf;          // 先是类再是类外函数，注意顺序
-            if (cf.empty()) {
-                ifs >> f;
-                if (f.empty()) clear_mess(ifs);        // 都不是函数
-                else {
-                    ofs << f << endl;
-                    write_success = true;
-                }
-            }
-            else {
-                ofs << cf << endl;
-                write_success = true;
-            }
+        Bras t;
+        rw_file(t, ifs, ofs);
+        bool res = t.write_success;
+        if (res) print_result("生成成功 -> " + ofile + "\n");
+        else {
+            print_error("生成失败 -> " + ifile + "，请查看头文件是否存在函数声明语句或者有语法错误" + "\n");
+            ofs.close();
+            path_deal::remove_file(ofile);       // 删除失败文件
         }
-        catch (string& e) {
-            if (warn_flag) {
-                print_warn(ifile + "存在异常：");
-                warn_flag = false;
-            }
-            print_warn("异常 " + to_string(++warn_count) + ": ", true, false);
-    #ifdef USER
-            print_warn(mark_string("line " + to_string(TS.line()), "\"", 0) + " " + e);
-    #else
-            print_warn(mark_string("line " + to_string(TS.line()), "\"", 0) + " " + e, false);           // 开发者模式
-    #endif
-            clear_mess(ifs);
-        }
-        if (write_success) print_result("生成成功 -> " + ofile + "\n");
-        else print_error("生成失败 -> " + ifile + "，请查看头文件是否存在函数声明语句或者有语法错误" + "\n");
-        return write_success;
+        return res;
     }
 
     void header_to_files(string idir, string odir)
@@ -106,10 +160,10 @@ namespace htf {
             throw string("htf::header_to_files: " + mark_string(idir) + "目录中没有C++头文件");
         int count = 0;
         for (const auto& name : files) {
-            print_result("file " + to_string(++count) + ": ");
+            print_result("file " + to_string(++count) + "->" + mark_string(name) + ": ");
             string ifile = idir + name;
             string ofile = odir + replace_extension(name);
-            if (!header_to_file(ifile, ofile)) path_deal::remove_file(ofile);       // 删除失败文件
+            header_to_file(ifile, ofile);
         }
     }
 }

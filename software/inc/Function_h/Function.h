@@ -13,13 +13,17 @@ public:
 
     Type type() const;      // 用于 重载输出流
     // 返回定义语句  -->  如：int add(int) { }
-    string str() const;
+    // count 控制缩进，"\t"的个数
+    string str(unsigned int count = 0) const;
     // 类的成员函数，参数为类名
-    string str_class(const string&) const;
+    // count 控制缩进，"\t"的个数
+    string str_class(const string& class_name, unsigned int count = 0) const;
     bool empty() const;
     // 是否是特殊函数
     bool is_sepcial() const;
-
+    // 格式化输出，按缩进输出
+    void print(ostream& os, unsigned int count = 1) const;
+    
 private:
     Type _type;
     Fun_name _name;

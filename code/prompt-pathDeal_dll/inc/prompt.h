@@ -20,14 +20,12 @@ namespace prompt{
     // is_line: 默认换行
     PDLL_API void print_error(string, bool is_user = true, bool is_line = true);
 
+    // 输出 count 个 "\n"，用于缩进
+    PDLL_API void print_indentation(ostream& os, int count = 1);
+
     // 在 s 前后加上 c 后，同时在前后各加一个空格 
     // 用于标记输出中的特别字符，加以强调
-    // flag 用于指定  
-    //      print_result = 1 (Green)   
-    //      print_warn = 0 (Yellow)
-    //      print_error = -1 (Red)
-    // ** 默认用于 print_error
-    PDLL_API string mark_string(const string& s, const string& c = "\"", int flag = -1);
-    PDLL_API string mark_char(char s, char c = '\"', int flag = -1);
+    PDLL_API string mark_string(const string& s, const string& c = "\"");
+    PDLL_API string mark_char(char s, char c = '\"');
 }
 
