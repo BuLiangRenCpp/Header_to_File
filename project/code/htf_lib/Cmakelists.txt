@@ -1,0 +1,30 @@
+﻿cmake_minimum_required(VERSION 3.28)
+project(Htf)
+
+# 定义变量
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${LIB})
+
+set(INC_NAME 
+    Function_h
+    Stream_h)
+set(SRC_NAME 
+    "Function" 
+    Stream)
+
+# 搜索路径
+foreach(n ${SRC_NAME})
+    aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/src/${n} SRC)    
+endforeach()
+list(APPEND SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/htf.cpp)
+
+foreach(n ${INC_NAME})
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/inc/${n})  
+endforeach()
+
+include_directories(${INC} ${CMAKE_CURRENT_SOURCE_DIR}/inc)
+
+# target
+link_directories(${LIB})
+add_library(Htf STATIC ${SRC})
+target_link_libraries(Htf Prompt-pathDeal)
+

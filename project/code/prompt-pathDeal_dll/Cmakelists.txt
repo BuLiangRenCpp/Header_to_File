@@ -1,0 +1,15 @@
+﻿cmake_minimum_required(VERSION 3.28)
+project(Prompt-pathDeal)
+
+# 定义变量
+
+# 设置预定义宏
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BIN})
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${LIB})
+
+# 搜索路径
+aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/src SRC)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/inc ${INC})
+
+# target
+add_library(Prompt-pathDeal SHARED ${SRC})

@@ -1,5 +1,5 @@
 {
-    "files.encoding": "gb2312",
+    "files.encoding": "utf8bom",
     "files.associations": {
         "iosfwd": "cpp",
         "string": "cpp"
