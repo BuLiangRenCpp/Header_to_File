@@ -1,5 +1,6 @@
-﻿#include "htf.h"
+#include "htf.h"
 
+using namespace std;
 using namespace prompt;
 using namespace path_deal;
 
@@ -9,11 +10,11 @@ static void clear_mess(istream& is)
     TS.ignore(is, Token{ ';' });
 }
 
-// 询问用户是否覆盖已有文件，输入 y or n
-static bool is_write_file()
+// 询问用户是否决定做某个操作，输入 y or n
+static bool input_y_n()
 {
     while (true) {
-        print_enter("\"" + mark_char('y') + "or" + mark_char('n') + "\"");
+        print_enter(mark_char('y') + "or" + mark_char('n'));
         string line;
         getline(cin, line);
         usage::delete_space_pre_suf(line);
@@ -103,45 +104,101 @@ static void rw_file(Bras& t, istream& ifs, ostream& ofs)
     rw_file(t, ifs, ofs);
 }
 
+static bool is_file_path(const string& path)
+{
+    return extension(path) != "";
+}
+
+// 将 header_to_file 的 odir 转为文件路径
+// odir = "" 直接返回 
+static void legal_odir(string& odir, const string& name)
+{
+    if (odir == "") return;
+    if (!is_file_path(odir)) {       // 1. 目录加上文件名
+        odir = odir + "/" + name;
+        odir = replace_extension(odir);
+    }
+    else {      // 2. 路径加上扩展名
+        if (extension(odir) == "") odir += ODEFAULT_EXTENSION;
+    }
+}
+
+// 对 path 进行判断，如果父目录不存在则提示创建
+// 返回的是用户的选择 y or n
+static bool create_parent_dir(const string& path)
+{
+    string dir = parent_dir(path);
+    if (!is_exist(dir)) {
+        print_warn("文件" + mark_string(path) + "不存在，是否创建此文件" + "(y - 创建, n - 取消)");
+        if (input_y_n()) {
+            create_dirs(dir);
+        }
+        else return false;
+    }
+    return true;
+}
+
 
 namespace htf {
-    bool header_to_file(const string& ifile, string ofile)
+    bool header_to_file(string ifile, string odir, bool is_force)
     {
         // ****** 每个文件使用刚初始化的 TS ******
         TS.clear();
-        // **************************************
+
+        // ************************ read file **********************************
+        if (extension(ifile) == "") ifile += IDEFAULT_EXTENSION;
+        else if (extension(ifile) != IDEFAULT_EXTENSION)
+            throw string("htf::header_to_file:" + mark_string(ifile) + "不是头文件");
         ifstream ifs(ifile);
         if (!ifs) throw string("htf::hearer_to_file:" + mark_string(ifile) + "打开失败");
 
-        if (ofile == "") ofile = replace_extension(ifile);
+        // ************************ legal odir *********************************** 
+        legal_odir(odir, file_name(ifile));
+        if (odir == "") odir = replace_extension(ifile);        // 默认路径
 
-        // 避免覆盖文件
-        if (is_exist(ofile)) {
-            print_warn(ofile + "已经存在，是否覆盖源文件" + mark_string("y-覆盖, n-不覆盖"));
-            if (!is_write_file()) {
+        // 1. 提示创建不存在目录
+        if (!create_parent_dir(odir)) return false;
+
+        // 2. 避免覆盖文件，提示用户
+        if (is_force == false && is_exist(odir)) {
+            print_warn(mark_string(odir) + "已经存在，是否覆盖源文件" + "(y-覆盖, n-不覆盖)");
+            if (!input_y_n()) {
                 print_result("跳过头文件" + mark_string(ifile) + "\n");
                 return true;
             }
         }
-        ofstream ofs(ofile);
-        if (!ofs) throw string("htf::header_to_file:" + mark_string(ofile) + "打开失败");
+
+        // ************************* write file *******************************
+        ofstream ofs(odir);
+        if (!ofs) throw string("htf::header_to_file:" + mark_string(odir) + "打开失败");
 
         ofs << "#include";
         ofs << " \"" << file_name(ifile) << "\"" << "\n\n" << endl;
 
         Bras t;
-        rw_file(t, ifs, ofs);
+        try {
+            rw_file(t, ifs, ofs);
+        }
+        catch (string& e) {
+#ifdef USER
+            print_warn(mark_string("line " + to_string(TS.line())) + " " + e);
+#else
+            print_warn(mark_string("line " + to_string(TS.line())) + " " + e, false);           // 开发者模式
+#endif
+        }
         bool res = t.write_success;
-        if (res) print_result("生成成功 -> " + ofile + "\n");
+
+        // ************************ print result ********************************
+        if (res) print_result("生成成功 -> " + odir + "\n");
         else {
             print_error("生成失败 -> " + ifile + "，请查看头文件是否存在函数声明语句或者有语法错误" + "\n");
             ofs.close();
-            path_deal::remove_file(ofile);       // 删除失败文件
+            path_deal::remove_file(odir);       // 删除失败文件
         }
         return res;
     }
 
-    void header_to_files(string idir, string odir)
+    void header_to_files(string idir, string odir, bool is_force)
     {
         if (!is_exist_dir(idir)) 
             throw string("htf::header_to_files:" + mark_string(idir) + "目录不存在");
@@ -154,13 +211,13 @@ namespace htf {
 
         vector<string> files = find_same_extension_files(idir);
         if (files.empty())
-            throw string("htf::header_to_files: " + mark_string(idir) + "目录中没有C++头文件");
+            throw string("htf::header_to_files:" + mark_string(idir) + "目录中没有C++头文件");
         int count = 0;
         for (const auto& name : files) {
             print_result("file " + to_string(++count) + "->" + mark_string(name) + ": ");
             string ifile = idir + name;
             string ofile = odir + replace_extension(name);
-            header_to_file(ifile, ofile);
+            header_to_file(ifile, ofile, is_force);
         }
     }
 }

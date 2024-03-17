@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "Token_kind.h"
 
@@ -14,15 +14,15 @@
 // 对于特殊的 cpp中单字符Token（如 ";"、"{"、"("等）其 kind、val 都是它本身
 struct Token {
 	char kind;		// 类型
-	string val;		// 字面值
+	std::string val;		// 字面值
     // 空Token
 	Token();
     // 用于特殊字符的初始化
 	Token(char);
     // 用于字符串的初始化，自动推导类型
-	Token(const string&);
+	Token(const std::string&);
     // 用于强制类型转换的，类型合法性由调用者自行判断
-    Token(char, const string&);
+    Token(char, const std::string&);
 };
 
 

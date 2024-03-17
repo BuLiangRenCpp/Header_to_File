@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "prompt.h"
 #include "usage.h"
@@ -9,18 +9,18 @@
 class Identifier {
 public:
 	Identifier();
-	Identifier(const string&);
+	Identifier(const std::string&);
 
-	string str() const;
+	std::string str() const;
 	bool empty() const;
 
 private:
-	string _name;
+	std::string _name;
 };
 
 
 // ------------------------ 重载 -----------------------------
 
-istream& operator>>(istream& is, Identifier& n);
+std::istream& operator>>(std::istream& is, Identifier& n);
 
-ostream& operator<<(ostream& os, const Identifier& n);
+std::ostream& operator<<(std::ostream& os, const Identifier& n);

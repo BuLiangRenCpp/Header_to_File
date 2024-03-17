@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "Type.h"
 
@@ -11,7 +11,7 @@ public:
 	Fun_arg(const Type&, const Identifier&);
 
 	// 返回  _type + " " + _name
-	string str() const;
+	std::string str() const;
 	bool empty() const;
 
 private:
@@ -25,10 +25,10 @@ private:
 // *** 读取失败将 is 设置为 fail 状态	   -->    为区分空参数列表  ***
 // name 函数名，用于报错
 // ** 参数列表错误结束，格式有问题，is.fail = true
-vector<Fun_arg> get_pars(istream& is, const string& name = "");
+std::vector<Fun_arg> get_pars(std::istream& is, const std::string& name = "");
 
 // ------------------------ 重载 -----------------------------
 
-istream& operator>>(istream& is, Fun_arg& p);
+std::istream& operator>>(std::istream& is, Fun_arg& p);
 
-ostream& operator<<(ostream& os, const Fun_arg& p);
+std::ostream& operator<<(std::ostream& os, const Fun_arg& p);

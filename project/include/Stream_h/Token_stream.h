@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "Literal.h"
 #include "Identifier.h"
@@ -13,22 +13,22 @@ class Token_stream {
 public:
 	Token_stream();
 
-	bool eof(istream& is);
+	bool eof(std::istream& is);
 	// 清空缓存区
 	void sync();
 	// 返回 token.kind == TOKEN_NULL_KIND 这说明没有内容了
-	Token get(istream& is);
+	Token get(std::istream& is);
 	void putback(Token);
 	// 清空直到 token 字符之前(包括 token)的所有字符
-	void ignore(istream& is, Token);
+	void ignore(std::istream& is, Token);
 	// 功能同 usage.cpp 中的同名函数
-	void ignore_between_bracket(istream& is);
+	void ignore_between_bracket(std::istream& is);
 	// ** 主要用于忽略参数默认值，此处给 Fun_par类 调用 
-	void ignore_default(istream& is);		// 原本想直接读取到 = 就忽略后面的值，但是这种情况是否会造成bug情况位置，故不采用
-	Token peek(istream& is);
+	void ignore_default(std::istream& is);		// 原本想直接读取到 = 就忽略后面的值，但是这种情况是否会造成bug情况位置，故不采用
+	Token peek(std::istream& is);
 
 	// 插入自定义类型的关键字
-	void push_type(const string&);
+	void push_type(const std::string&);
 
 	int line() const;
 	// 将 TS 清空到初始状态，用于每个文件对应一个 TS，但是用的 TS 都是同一个类
@@ -37,12 +37,12 @@ public:
 private:
 	bool _full{ false };		// 缓冲区是否有数据
 	Token _buffer{};	
-	set<string> _types;			// 保存自定义类型
+	std::set<std::string> _types;			// 保存自定义类型
 	int _line = 1;
 	
 	// 忽略注释
 	// flag == false: 默认行注释
-	void _ignore_note(istream& is, bool flag = false);
+	void _ignore_note(std::istream& is, bool flag = false);
 };
 
 // ***************************************

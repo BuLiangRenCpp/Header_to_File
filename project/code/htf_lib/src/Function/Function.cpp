@@ -1,5 +1,6 @@
-﻿#include "Function.h"
+#include "Function.h"
 
+using namespace std;
 using namespace prompt;
 
 static const string FUN_END_STR = "\n{\n\n}\n";

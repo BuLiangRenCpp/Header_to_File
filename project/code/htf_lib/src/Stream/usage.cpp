@@ -1,5 +1,6 @@
-﻿#include "usage.h"
+#include "usage.h"
 
+using namespace std;
 using namespace prompt;
 
 

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "Token_stream.h"
 
@@ -19,19 +19,19 @@ class Type {
 public:
 	Type();
 	// 直接赋值，不做检查，使用 重载函数
-	Type(const string&);
+	Type(const std::string&);
 
-	string str() const;
+	std::string str() const;
 	bool empty() const;
 
 private:
-	string _type;
+	std::string _type;
 };
 
 
 // ------------------------- 重载 ------------------------------
 
 // 注：语法正确性是编译器的事
-istream& operator>>(istream& is, Type& t);
+std::istream& operator>>(std::istream& is, Type& t);
 
-ostream& operator<<(ostream& os, const Type& t);
+std::ostream& operator<<(std::ostream& os, const Type& t);

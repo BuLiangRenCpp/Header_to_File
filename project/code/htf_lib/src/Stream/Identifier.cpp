@@ -1,5 +1,6 @@
-﻿#include "Identifier.h"
+#include "Identifier.h"
 
+using namespace std;
 using namespace prompt;
 using namespace usage;
 

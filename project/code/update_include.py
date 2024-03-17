@@ -1,4 +1,4 @@
-﻿import shutil
+import shutil
 import os
 
 def copy_dir(src, tar):
@@ -14,10 +14,10 @@ def copy_dir(src, tar):
 
 # *******************************
 src_dir = os.getcwd()
-inc_str = "/inc"
+inc_str = "inc"
 
 target = os.path.dirname(src_dir)
-target += "/include"
+target = os.path.join(target, "include")
 # ********************************
 
 # 当前目录下的所有子目录名称
@@ -25,5 +25,7 @@ sub_dirs = [name for name in os.listdir(os.curdir)
         if os.path.isdir(os.path.join(os.curdir, name))]            
 
 for sub_dir in sub_dirs:
-    src = src_dir + "/" + sub_dir + inc_str
+    src = os.path.join(sub_dir, inc_str)
     copy_dir(src, target)
+
+print("更新成功")

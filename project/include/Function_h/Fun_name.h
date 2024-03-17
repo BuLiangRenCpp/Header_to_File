@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "Token_stream.h"
 
@@ -10,19 +10,19 @@ public:
 	// 一般函数名一般使用此初始化
 	Fun_name(const Identifier&);
 	// 特殊函数名一般使用此初始化
-	Fun_name(const string&);
+	Fun_name(const std::string&);
 
-	string str() const;
+	std::string str() const;
 	bool empty() const;
 
 private:
-	string _name = "";
+	std::string _name = "";
 };
 
 
 
 // ------------------------ 重载 -----------------------------
 
-istream& operator>>(istream& is, Fun_name& i);
+std::istream& operator>>(std::istream& is, Fun_name& i);
 
-ostream& operator<<(ostream& os, const Fun_name& i);
+std::ostream& operator<<(std::ostream& os, const Fun_name& i);

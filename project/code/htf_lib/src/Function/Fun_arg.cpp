@@ -1,5 +1,6 @@
-﻿#include "Fun_arg.h"
+#include "Fun_arg.h"
 
+using namespace std;
 using namespace prompt;
 
 

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "header.h"
 
@@ -9,18 +9,18 @@
 class Literal {
 public:
 	Literal();
-	Literal(const string&);
+	Literal(const std::string&);
 
-	string str() const;
+	std::string str() const;
 	bool empty() const;
 
 private:
-	string _val;
+	std::string _val;
 };
 
 
 // ------------------------ 重载 -----------------------------
 
-istream& operator>>(istream& is, Literal& l);
+std::istream& operator>>(std::istream& is, Literal& l);
 
-ostream& operator<<(ostream& os, const Literal& l);
+std::ostream& operator<<(std::ostream& os, const Literal& l);

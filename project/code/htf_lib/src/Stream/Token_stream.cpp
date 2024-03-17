@@ -1,4 +1,6 @@
-﻿#include "Token_stream.h"
+#include "Token_stream.h"
+
+using namespace std;
 
 // ***************************************
 // -------------- 公用流 -----------------

@@ -1,8 +1,8 @@
-﻿#include "Class_fun.h"
+#include "Class_fun.h"
 
+using namespace std;
 using namespace prompt;
 using namespace Token_kind;
-
 
 static const string Class_Str_Sta = "// --------------------------------------- ";
 static const string Class_Str_End = " ------------------------------------------";

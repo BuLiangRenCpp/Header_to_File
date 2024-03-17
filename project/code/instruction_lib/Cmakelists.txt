@@ -1,1 +1,21 @@
-﻿
+cmake_minimum_required(VERSION 3.28)
+project(Instruction)
+
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${LIB})
+
+set(CUR_INC 
+    ${CMAKE_CURRENT_SOURCE_DIR}/inc/Ins_h
+    ${CMAKE_CURRENT_SOURCE_DIR}/inc)
+set(SRC_DIR 
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Ins
+    ${CMAKE_CURRENT_SOURCE_DIR}/src)
+
+foreach(dir ${SRC_DIR})
+    aux_source_directory(${dir} SRC)    
+endforeach()
+include_directories(${CUR_INC} ${INC})
+
+# target
+link_directories(${LIB})
+add_library(Ins STATIC ${SRC})
+target_link_libraries(Ins Prompt-pathDeal)

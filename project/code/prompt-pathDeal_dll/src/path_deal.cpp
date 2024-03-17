@@ -1,6 +1,8 @@
-﻿#define PATH_DEAL_DLL
+#define PATH_DEAL_DLL
 #define PROMPT_DLL
 #include "path_deal.h"
+
+using namespace std;
 
 const set<string> Extensions{ ".txt", ".h", ".hpp", ".h++", ".inl",
 		".cpp", ".cxx", ".c++", ".C++", ".c", ".C", ".cc" };			// 扩展名集合
@@ -15,6 +17,14 @@ static bool is_extension(const string& s)
 	return Extensions.count(s);
 }
 
+// 是否从开头开始有连续 . 的个数超过 3 个
+// ** 在 win 平台 FS::exists("...") 返回 true
+static bool is_more_point(const string& s)
+{
+	if (s.length() < 3) return false;
+	return (s[0] == '.' && s[1] == '.' && s[2] == '.');
+}
+
 
 namespace path_deal {
 	const string IDEFAULT_EXTENSION = ".h";
@@ -27,7 +37,7 @@ namespace path_deal {
 
 	bool is_exist(const string& path)
 	{
-		if (path == "\\" || path == "/") return false;		// FS::exists(c) c = "\" or "/" 会返回true
+		if (is_more_point(path)) return false;			// 不处理 ... 连续三个以上的情形
 		FS::path f{ path };
 		return FS::exists(f);
 	}
@@ -57,6 +67,12 @@ namespace path_deal {
 		string extension = f.extension().string();
 		if (!is_extension(extension)) return name;
 		return (have_extension) ? name : name.substr(0, name.rfind(extension));
+	}
+
+	string parent_dir(const string& s)
+	{
+		FS::path f(s);
+		return f.parent_path().string();
 	}
 
 	string replace_extension(const string& path, const string& extension)
@@ -89,7 +105,17 @@ namespace path_deal {
 
 	string current_dir()
 	{
-		return FS::current_path().string() + "\\";
+		return FS::current_path().string();
+	}
+
+	string normalize(const string& sourse, const string& target)
+	{
+		FS::path p(sourse);
+		p.append(target);
+		string res = p.lexically_normal().string();
+		if (!is_exist_dir(res))
+			if (is_exist(res + IDEFAULT_EXTENSION)) return res + IDEFAULT_EXTENSION;
+		return res;
 	}
 
 	string extension(const string& s)
@@ -99,10 +125,17 @@ namespace path_deal {
 		return (is_extension(extension)) ? extension : "";
 	}
 
-	void remove_file(const string& s)
+	bool remove_file(const string& s)
 	{
 		FS::path f{ s };
 		if (!FS::exists(s)) throw string("path_deal::remove_file:" + mark_string(s) + "not exist");
-		FS::remove(f);
+		return FS::remove(f);
+	}
+
+	bool create_dirs(const string& s)
+	{
+		FS::path f{ s };
+		if (FS::exists(s)) throw string("path_deal::remove_file:" + mark_string(s) + "already exist");
+		return FS::create_directories(s);
 	}
 }

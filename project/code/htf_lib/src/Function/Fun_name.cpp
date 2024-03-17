@@ -1,5 +1,6 @@
-﻿#include "Fun_name.h"
+#include "Fun_name.h"
 
+using namespace std;
 using namespace prompt;
 using namespace Token_kind;
 

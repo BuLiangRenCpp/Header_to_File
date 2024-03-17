@@ -1,5 +1,6 @@
-﻿#include "Token_kind.h" 
+#include "Token_kind.h" 
 
+using namespace std;
 using namespace usage;
 
 namespace Token_kind{

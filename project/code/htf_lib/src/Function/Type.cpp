@@ -1,5 +1,6 @@
-﻿#include "Type.h"
+#include "Type.h"
 
+using namespace std;
 using namespace prompt;
 using namespace Token_kind;
 

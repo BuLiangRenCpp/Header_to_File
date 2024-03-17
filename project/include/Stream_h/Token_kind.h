@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "usage.h"
 
@@ -13,11 +13,11 @@ namespace Token_kind{
 
     constexpr char NULL_KIND = '`';		// 空 类型
 
-    const set<char> Kinds{CLASS_KEY_KIND, TYPE_KIND, IDENTIFIER_KIND, NULL_KIND};
+    const std::set<char> Kinds{CLASS_KEY_KIND, TYPE_KIND, IDENTIFIER_KIND, NULL_KIND};
 
     // 返回字符串对应的kind
     // ** 注：特殊字符的kind就是它本身，不用写此函数
     // ** 如果不是其他优先级高的类型，则返回 NULL_KIND
-    char ret_kind(const string&);
+    char ret_kind(const std::string&);
 
 }

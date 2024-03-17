@@ -1,5 +1,7 @@
-﻿#define PROMPT_DLL
+#define PROMPT_DLL
 #include "prompt.h"
+
+using namespace std;
 
 // ---------- color ---------------
 static const string RESET = "\033[0m";
@@ -9,8 +11,8 @@ static const string YELLOW = "\033[33m";
 static const string BLUE = "\033[34m";
 static const string WHITE = "\033[37m";
 
-static const string Print_Str_Sta = "---------------------- ";
-static const string Print_Str_End = " ---------------------";
+static const string Print_Str_Sta = "  ";
+static const string Print_Str_End = "  ";
 static const string Enter_Str = YELLOW + "-- " + GREEN + "enter " + RESET;
 static const string Result_Str = GREEN + "--> " + RESET;
 static const string Warn_Str = YELLOW + "~~ " + RESET;
@@ -56,20 +58,52 @@ static string ret_color(int flag)
     return color;
 }
 
-// 返回 s 的双引号的下标
-static pair<int, int> ret_index(const string& s)
+static vector<pair<size_t, size_t>> ret_indexs(const string& s)
 {
-    int fi = (s.find('"') == string::npos) ? -1 : s.find('"');
-    int se = (s.rfind('"') == string::npos) ? -1 : s.rfind('"');
-    return make_pair(fi, se);
+    vector<pair<size_t, size_t>> res;
+    pair<size_t, size_t> temp;
+    size_t index = 0;
+    while (true) {
+        index = (s.find('"', index) == string::npos) ? -1 : s.find('"', index);
+        if (index == -1 || index == s.length() - 1) break;
+        temp.first = index;
+
+        index = (s.find('"', index + 1) == string::npos) ? -1 : s.find('"', index + 1);
+        if (index == -1) break;
+        temp.second = index;
+        res.emplace_back(temp);
+        index++;
+    }
+    return res;
 }
 
+static string color_string(const string& s, const string& color, const string& target = BLUE)
+{
+    vector<pair<size_t, size_t>> indexs = ret_indexs(s);
+    if (indexs.empty()) {
+        return color + s;
+    }
+    string res = color + s.substr(0, indexs[0].first);
+    // "123" 567 "9"   0,4  8,10
+
+    for (size_t i = 0; i < indexs.size(); i++) {
+        res += "\"";
+        res += target + s.substr(indexs[i].first + 1, indexs[i].second - indexs[i].first - 1) + color + "\"";
+        if (i + 1 < indexs.size())      // 加上双引号外的字符
+            res += s.substr(indexs[i].second + 1, indexs[i + 1].first - indexs[i].second - 1);
+    }
+    res += s.substr(indexs.back().second + 1);
+    return res;
+}
 
 namespace prompt{  
     void prompt()
     {
+        print("decoding = UTF-8");
         print("指令格式请见 https://gitee.com/buliangrencpp/Header_to_File");
-        print("注: 目录或者路径必须是已经存在的");
+        print("注: 输入目录或者文件路径必须是已经存在的，输出目录或者文件路径可以不存在");
+        print("-- 对于输出目录或者文件路径来说:");
+        print("   当输入路径是文件路径时，如果\"输出路径\"中包含程序可识别的扩展名(.cpp)，则认为是文件路径，否则认为是目录");
         cout << endl;
     }
 
@@ -80,54 +114,27 @@ namespace prompt{
 
     void print_enter(const string& s)
     {
-        pair<int, int> indexs = ret_index(s);
-        string res = GREEN;
-        if (indexs.first == -1 || indexs.second == -1) res += s;
-        else {
-            res += s.substr(0, indexs.first + 1);
-            res += BLUE + s.substr(indexs.first + 1, indexs.second - indexs.first - 1) + GREEN + s.substr(indexs.second);
-        } // 0 1 2 3
-        cout << Enter_Str + res << ": " + RESET;
+        cout << Enter_Str + color_string(s, GREEN) << ": " + RESET;
     }
 
     void print_result(const string& s, bool is_line)
     {
-        pair<int, int> indexs = ret_index(s);
-        string res = GREEN;
-        if (indexs.first == -1 || indexs.second == -1) res += s;
-        else {
-            res += s.substr(0, indexs.first + 1);
-            res += BLUE + s.substr(indexs.first + 1, indexs.second - indexs.first - 1) + GREEN + s.substr(indexs.second);
-        }
-        cout << Result_Str << res + RESET;
+        
+        cout << Result_Str << color_string(s, GREEN) + RESET;
         if (is_line) cout << endl;
     }
 
     void print_warn(string s, bool is_user, bool is_line)
     {
-        if (is_user) delete_head(s);
-        pair<int, int> indexs = ret_index(s);
-        string res = YELLOW;
-        if (indexs.first == -1 || indexs.second == -1) res += s;
-        else {
-            res += s.substr(0, indexs.first + 1);
-            res += BLUE + s.substr(indexs.first + 1, indexs.second - indexs.first - 1) + YELLOW + s.substr(indexs.second);
-        }
-        cout << Warn_Str << res + RESET;
+        
+        cout << Warn_Str << color_string(s, YELLOW) + RESET;
         if (is_line) cout << endl;
     }
 
     void print_error(string s, bool is_user, bool is_line)
     {
-        if (is_user) delete_head(s);
-        pair<int, int> indexs = ret_index(s);
-        string res = RED;
-        if (indexs.first == -1 || indexs.second == -1) res += s;
-        else {
-            res += s.substr(0, indexs.first + 1);
-            res += BLUE + s.substr(indexs.first + 1, indexs.second - indexs.first - 1) + RED + s.substr(indexs.second);
-        }
-        cerr << Error_Str << res + RESET;
+        
+        cerr << Error_Str << color_string(s, RED) + RESET;
         if (is_line) cout << endl;
     }
 
@@ -144,12 +151,11 @@ namespace prompt{
 
     string mark_char(char s, char c)
     {
-        if (s == '\"') c = '\'';
         string res = " ";
         res += c;
         res += s;
         res += c;
-        res += ' ';
+        res += " ";
         return res;
     }
 }
