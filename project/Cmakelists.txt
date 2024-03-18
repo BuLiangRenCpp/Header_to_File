@@ -60,7 +60,7 @@ target_link_libraries(htf ${LIB_NAME})
 # ***************************** install *********************************
 set(CMAKE_INSTALL_PREFIX ${ROOT}/software)
 
-install (DIRECTORY ${PRO}/include
-    DESTINATION .)
+# install (DIRECTORY ${PRO}/include
+#     DESTINATION .)
 install(DIRECTORY ${BIN}
     DESTINATION .)
