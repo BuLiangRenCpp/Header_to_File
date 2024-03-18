@@ -16,6 +16,7 @@ namespace path_deal {
 	extern const std::string DLL_API ODEFAULT_EXTENSION;
 
 	DLL_API bool is_header_extension(const std::string&);
+	DLL_API bool is_source_extension(const std::string&);
 
     // 是否是存在的file or dir
 	DLL_API bool is_exist(const std::string&);

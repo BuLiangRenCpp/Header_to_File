@@ -44,8 +44,8 @@ bool Ins_arg::is_darg() const
 
 void Ins_arg::change_darg(const Ins_arg_key& k)
 {
-    if (this->is_darg()) _key = k;
-    throw string("Ins_arg::change_darg: 只能修改默认参数");
+    if (!this->is_darg()) throw string("Ins_arg::change_darg: 只能修改默认参数");
+	_key = k;
 }
 
 

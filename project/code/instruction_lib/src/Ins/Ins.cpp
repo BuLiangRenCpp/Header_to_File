@@ -37,8 +37,7 @@ Ins::Ins(const Ins_key& k, const vector<Ins_arg>& args)
 	}
 	// 2. 多指令
 	if (args.empty()) throw string("Ins::Ins:" + mark_string(k.str()) + "指令后缺少内容");
-	if (is_ins_args_throw(k.str(), to_chars(args))) return;
-    _legalize();
+	if (is_ins_args_throw(k.str(), to_chars(args))) _legalize();
 }
 
 Ins_key Ins::key() const
@@ -136,7 +135,7 @@ static void legal_htf_ins_3(vector<Ins_arg>& args)
     legal_htf_ins_2(arg2);
     args.clear();
     args.emplace_back(Ins_arg{ins_const::arg::FORCE_ARG});          // 确保第一个是 -f 
-    args.emplace_back(args[0]);
+    args.emplace_back(arg2[0]);
     args.emplace_back(arg2[1]);
 }
 

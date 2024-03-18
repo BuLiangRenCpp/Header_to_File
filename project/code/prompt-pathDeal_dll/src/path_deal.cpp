@@ -5,8 +5,9 @@
 using namespace std;
 
 const set<string> Extensions{ ".txt", ".h", ".hpp", ".h++", ".inl",
-		".cpp", ".cxx", ".c++", ".C++", ".c", ".C", ".cc" };			// 扩展名集合
+		".cpp", ".cxx", ".c++", ".c", ".cc" };			// 扩展名集合
 const set<string> Header_Extensions{ ".h", ".hpp", ".h++", ".inl" };		// 头文件扩展名集合
+const set<string> Source_Extensions{ ".cpp", ".cxx", ".c++", ".c", ".cc" };
 
 using namespace prompt;
 namespace FS = std::filesystem;
@@ -33,6 +34,11 @@ namespace path_deal {
 	bool is_header_extension(const string& s)
 	{
 		return Header_Extensions.count(s);
+	}
+
+	bool is_source_extension(const string& s)
+	{
+		return Source_Extensions.count(s);
 	}
 
 	bool is_exist(const string& path)

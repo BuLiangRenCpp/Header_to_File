@@ -25,6 +25,11 @@ set(SUB_DIR
 # ********************************* build type *****************************************
 # -->  cmake -D D=..
 # default release
+
+if (U)
+    add_compile_options(-D USER)
+endif()
+
 if(D)
     set(CMAKE_BUILD_TYPE Debug)
 elseif(R)
@@ -49,6 +54,8 @@ include_directories(${INC})
 link_directories(${LIB})
 add_executable(htf ${SRC})
 target_link_libraries(htf ${LIB_NAME})
+
+
 
 # ***************************** install *********************************
 set(CMAKE_INSTALL_PREFIX ${ROOT}/software)

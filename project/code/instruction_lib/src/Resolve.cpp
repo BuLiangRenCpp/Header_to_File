@@ -47,7 +47,7 @@ void Resolve::_htf_ins(const vector<Ins_arg>& args)
 {
     string header_path, target_path;
     bool is_force = false;
-    if (args[0].key().is_narg()) is_force = true;
+    if (args[0].key().ch() == arg::FORCE_ARG) is_force = true;
 
     auto size = args.size();
     if (size == 1) header_path = args[0].con().str();       // -i
@@ -64,10 +64,13 @@ void Resolve::_htf_ins(const vector<Ins_arg>& args)
         target_path = args[2].con().str();
     }
     // ***************************************************************
+    if (!path_deal::is_exist(header_path) && !path_deal::is_exist(header_path + path_deal::IDEFAULT_EXTENSION))
+        throw string("Resolve::_htf_ins:" + mark_string(header_path) + "not exist");
     if (path_deal::is_exist_dir(header_path))       // 目录
         htf::header_to_files(header_path, target_path, is_force);
-    else        // 单文件
+    else {      // 单文件
         htf::header_to_file(header_path, target_path, is_force);
+    }
 }
 
 

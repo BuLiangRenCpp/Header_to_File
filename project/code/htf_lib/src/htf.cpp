@@ -119,21 +119,22 @@ static void legal_odir(string& odir, const string& name)
         odir = replace_extension(odir);
     }
     else {      // 2. 路径加上扩展名
-        if (extension(odir) == "") odir += ODEFAULT_EXTENSION;
+        if (!is_source_extension(extension(odir))) odir += ODEFAULT_EXTENSION;
     }
 }
 
-// 对 path 进行判断，如果父目录不存在则提示创建
+// 对 path 进行判断，如果父目录不存在则提示创建 （is_force == true 不提示直接创建)
 // 返回的是用户的选择 y or n
-static bool create_parent_dir(const string& path)
+static bool create_parent_dir(const string& path, bool is_force)
 {
     string dir = parent_dir(path);
     if (!is_exist(dir)) {
-        print_warn("文件" + mark_string(path) + "不存在，是否创建此文件" + "(y - 创建, n - 取消)");
-        if (input_y_n()) {
-            create_dirs(dir);
+        if (is_force) create_dirs(dir);
+        else {
+            print_warn("目录" + mark_string(dir) + "不存在，是否创建此文件" + "(y - 创建, n - 取消)");
+            if (input_y_n()) create_dirs(dir);
+            else return false;
         }
-        else return false;
     }
     return true;
 }
@@ -147,20 +148,20 @@ namespace htf {
 
         // ************************ read file **********************************
         if (extension(ifile) == "") ifile += IDEFAULT_EXTENSION;
-        else if (extension(ifile) != IDEFAULT_EXTENSION)
-            throw string("htf::header_to_file:" + mark_string(ifile) + "不是头文件");
+        else if (!is_header_extension(extension(ifile)))
+            throw string("htf::header_to_file:" + mark_string(ifile) + "不是C++头文件");
         ifstream ifs(ifile);
-        if (!ifs) throw string("htf::hearer_to_file:" + mark_string(ifile) + "打开失败");
+        if (!ifs) throw string("htf::hearer_to_file: 文件" + mark_string(ifile) + "打开失败");
 
         // ************************ legal odir *********************************** 
         legal_odir(odir, file_name(ifile));
         if (odir == "") odir = replace_extension(ifile);        // 默认路径
 
         // 1. 提示创建不存在目录
-        if (!create_parent_dir(odir)) return false;
+        if (!create_parent_dir(odir, is_force)) return false;
 
         // 2. 避免覆盖文件，提示用户
-        if (is_force == false && is_exist(odir)) {
+        if (is_force == false && is_exist_file(odir)) {
             print_warn(mark_string(odir) + "已经存在，是否覆盖源文件" + "(y-覆盖, n-不覆盖)");
             if (!input_y_n()) {
                 print_result("跳过头文件" + mark_string(ifile) + "\n");
@@ -170,7 +171,7 @@ namespace htf {
 
         // ************************* write file *******************************
         ofstream ofs(odir);
-        if (!ofs) throw string("htf::header_to_file:" + mark_string(odir) + "打开失败");
+        if (!ofs) throw string("htf::header_to_file: 文件" + mark_string(odir) + "打开失败");
 
         ofs << "#include";
         ofs << " \"" << file_name(ifile) << "\"" << "\n\n" << endl;
@@ -202,21 +203,25 @@ namespace htf {
     {
         if (!is_exist_dir(idir)) 
             throw string("htf::header_to_files:" + mark_string(idir) + "目录不存在");
-        if (odir != "" && !is_exist_dir(idir)) 
-            throw string("htf::header_to_files:" + mark_string(odir) + "目录不存在");
-        if (idir.back() != '\\') idir.push_back('\\');
-
-        if (odir == "") odir = idir;
-        else if (odir.back() != '\\') odir.push_back('\\');
+        if (is_exist_file(odir))
+            throw string("htf::header_to_files: 输出路径应该是目录，" + mark_string(odir) + "是文件路径");
 
         vector<string> files = find_same_extension_files(idir);
         if (files.empty())
             throw string("htf::header_to_files:" + mark_string(idir) + "目录中没有C++头文件");
         int count = 0;
+        if (odir == "") odir = idir;
+        // 1. 提示创建不存在目录
+        if (!is_exist_dir(odir)) {
+            print_warn("目录" + mark_string(odir) + "不存在，是否创建此文件" + "(y - 创建, n - 取消)");
+            if (input_y_n()) create_dirs(odir);
+            else return;
+        }
+
         for (const auto& name : files) {
-            print_result("file " + to_string(++count) + "->" + mark_string(name) + ": ");
-            string ifile = idir + name;
-            string ofile = odir + replace_extension(name);
+            print_result(mark_string("file " + to_string(++count)) + "->" + mark_string(name) + ": ");
+            string ifile = normalize(idir, name);
+            string ofile = normalize(odir, replace_extension(name));
             header_to_file(ifile, ofile, is_force);
         }
     }

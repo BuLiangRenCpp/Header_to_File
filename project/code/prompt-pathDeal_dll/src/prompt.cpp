@@ -102,8 +102,7 @@ namespace prompt{
         print("decoding = UTF-8");
         print("指令格式请见 https://gitee.com/buliangrencpp/Header_to_File");
         print("注: 输入目录或者文件路径必须是已经存在的，输出目录或者文件路径可以不存在");
-        print("-- 对于输出目录或者文件路径来说:");
-        print("   当输入路径是文件路径时，如果\"输出路径\"中包含程序可识别的扩展名(.cpp)，则认为是文件路径，否则认为是目录");
+        print("    如果没有显示指明扩展名，则 头文件默认 .h，源文件默认 .cpp");
         cout << endl;
     }
 
@@ -126,14 +125,14 @@ namespace prompt{
 
     void print_warn(string s, bool is_user, bool is_line)
     {
-        
+        if (is_user) delete_head(s);
         cout << Warn_Str << color_string(s, YELLOW) + RESET;
         if (is_line) cout << endl;
     }
 
     void print_error(string s, bool is_user, bool is_line)
     {
-        
+        if (is_user) delete_head(s);
         cerr << Error_Str << color_string(s, RED) + RESET;
         if (is_line) cout << endl;
     }
