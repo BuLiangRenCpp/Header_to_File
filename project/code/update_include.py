@@ -1,5 +1,6 @@
 import shutil
 import os
+import filecmp
 
 def copy_dir(src, tar):
     if not os.path.exists(tar):
@@ -10,7 +11,8 @@ def copy_dir(src, tar):
         if (os.path.isdir(s)):
             copy_dir(s, t)
         else:
-            shutil.copy2(s, t)
+            if not filecmp.cmp(s, t, shallow=False):
+                shutil.copy2(s, t)
 
 # *******************************
 src_dir = os.getcwd()

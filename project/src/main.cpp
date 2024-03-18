@@ -37,7 +37,7 @@ static void imitate()
 
 int main()
 try{
-// ****************************
+// ********* windows ***********
 #ifdef _WIN32
 	win::set_consoleCP_to_UTF8();
 #endif
@@ -49,4 +49,16 @@ try{
 {
 	prompt::print_error(e);
     return 1;
+}
+catch (std::exception& e)
+{
+	prompt::print_error(e.what());
+	prompt::print_warn("请联系开发者");
+	return 2;
+}
+catch (...)
+{
+	prompt::print_error("ERROR");
+	prompt::print_warn("请联系开发者");
+	return 3;
 }
