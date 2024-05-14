@@ -1,0 +1,33 @@
+cmake_minimum_required(VERSION 3.28)
+project(compile)
+
+# ################################# set variable #####################################
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BIN})
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${LIB})
+
+
+# ################################## find dir ######################################
+set(CUR_SRC_DIR
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/lex
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/parse)
+
+foreach(dir ${CUR_SRC_DIR})    
+    aux_source_directory(${dir} SRC)
+endforeach()
+
+    
+include_directories(${INC})
+link_directories(${LIB})
+
+# ################################### target #######################################
+link_directories(${BIN})
+add_library(Compile SHARED ${SRC})
+
+set(CUR_LIB_NAME 
+    Share
+    Stream)
+target_link_libraries(Compile ${CUR_LIB_NAME})
+
+# ################################## install #######################################
+
