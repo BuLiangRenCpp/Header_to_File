@@ -33,7 +33,21 @@ namespace htf {
 		{
 			if (s.empty()) return;
 			for (const auto& x : s)	{
-				_con.emplace_back(normalize(current_dir(), x));
+				string file = path_deal::file_name(x);
+				if (file.find('*') != string::npos) {		// * 通配符处理
+					string parent_dir = path_deal::parent_dir(x);
+					if (parent_dir.find('*') != string::npos) 
+						throw Excep_arg{"Arg_con::Arg_con(...)", "in" + mark_string(x) + "," + mark_char('*') + 
+							"only appear in the file(last) at this version"};
+					string dir = normalize(current_dir(), parent_dir);
+					auto files = path_deal::regex_find_files(dir, file);
+					for (const auto& f : files) 
+						if (!my_std::is_in(f, _con)) _con.emplace_back(normalize(dir, f));
+				}
+				else {
+					string f = normalize(current_dir(), x);
+					if (!my_std::is_in(f, _con)) _con.emplace_back(f);
+				}
 			}
 		}
 
@@ -52,6 +66,15 @@ namespace htf {
 		vector<string> Arg_con::con() const
 		{
 			return _con;
+		}
+
+		string Arg_con::str() const
+		{
+			string res;
+			for (const auto& x : _con) {
+				res += x + "  ";
+			}
+			return res;
 		}
 
 		bool Arg_con::empty() const

@@ -154,10 +154,10 @@ namespace htf {
             }
 
             // ************************ print result ********************************
-            if (t.write_success) print_result("success -> " + output_path + "\n");
+            if (t.write_success) print_result("success -> " + output_path);
             else {
                 print_error("failure ->" + mark_string(lex.hpath().str()) + 
-                    ", check if there are function declaration statement or syntax in the file" + "\n");
+                    ", check if there are function declaration statement or syntax in the file");
                 ofs.close();
                 if (!is_already_exist) path_deal::remove_file(output_path);       // * 删除失败文件
             }

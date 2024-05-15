@@ -35,7 +35,7 @@ namespace htf {
 			if (args_judge::is_harg(_key.ch()) && _con.empty()) 
 				throw Excep_arg("Arg::Arg", "after" + mark_char(k.ch()) + "lack of argument");
 			if (_con.con().size() > args_judge::arg_count_max(_key.ch()))
-				throw Excep_arg("Arg::Arg", mark_char(k.ch()) + "have more arguments");
+				throw Excep_arg("Arg::Arg", mark_char(k.ch()) + "have more arguments: " + _con.str());
 		}
 
 		Arg_key Arg::key() const

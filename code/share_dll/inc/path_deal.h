@@ -31,8 +31,10 @@ namespace htf {
 		DLL_API std::string parent_dir(const std::string&);
 		// 替换文件扩展名，路径格式必须正确
 		DLL_API std::string change_extension(const std::string&, const std::string& extension = ODEFAULT_EXTENSION);
-		// 返回目录下指定扩展名的所有文件的文件名
-		DLL_API std::vector<std::string> find_same_extension_files(const std::string&, const std::string& extension = IDEFAULT_EXTENSION);
+		// 返回目录下指定目录下的匹配正则表达式的所有文件的文件名
+		// 规则： '*' 匹配任意字符，'.' 就表示 \.，其余同 C++ <regex>
+		// ! 目前仅支持目录下的第一层文件匹配 ( -- 下一步是否扩展到匹配目录，多层文件匹配等 --)
+		DLL_API std::vector<std::string> regex_find_files(const std::string&, std::string pattern = "*." + IDEFAULT_EXTENSION);
 		// 搜寻指定目录下的程序允许的C++头文件
 		DLL_API std::vector<std::string> find_cpp_header_files(const std::string& dir);
 		// 返回当前所在目录

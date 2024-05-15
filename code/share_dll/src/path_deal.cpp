@@ -13,8 +13,38 @@ const unordered_set<string> Extensions{ ".txt", ".h", ".hpp", ".h++", ".inl",
 const unordered_set<string> Header_Extensions{ ".h", ".hpp", ".h++", ".inl" };		// 头文件扩展名集合
 const unordered_set<string> Source_Extensions{ ".cpp", ".cxx", ".c++", ".c", ".cc" };
 
+// 在特殊字符前加上的字符 
+const unordered_map<char, char> Reg_Insert_Str{ {'*', '.'}, {'.', '\\'} };
+
 using namespace output;
 namespace FS = std::filesystem;
+
+static vector<int> _index(char c, const string& s)
+{
+	vector<int> res;
+	for (int i = 0; i < s.length(); i++) {
+		if (s[i] == c) res.emplace_back(i);
+	}
+	return res;
+}
+
+static void _insert(string& s, char c, const vector<int>& index)
+{
+	if (Reg_Insert_Str.count(c)) {
+		for (int i = index.size() - 1; i >= 0; i--) {
+			s.insert(s.begin() + index[i], Reg_Insert_Str.at(c));
+		}
+	}
+}
+
+static void legal_regex(string& s)
+{
+	auto index = _index('.', s);
+	_insert(s, '.', index);
+	index = _index('*', s);
+	_insert(s, '*', index);
+}
+
 
 
 static bool is_extension(const string& s)
@@ -104,6 +134,23 @@ namespace htf {
 			return parent_dir + file_name + extension;
 		}
 
+		vector<string> regex_find_files(const string& dir_path_str, string pattern)
+		{
+			if (!is_exist_dir(dir_path_str))	
+				throw exception::Excep_path{"path_deal::regex_find_files", "directory" + 
+					mark_string(dir_path_str) + "not exist"};
+			legal_regex(pattern);
+			FS::path dir_path{ dir_path_str };
+			if (!FS::is_directory(dir_path)) return {};
+			regex r{pattern};
+			vector<string> res;
+			for (const auto& entry : FS::directory_iterator(dir_path)) {
+				if (regex_match(entry.path().filename().string(), r) && entry.is_regular_file())
+					res.emplace_back(entry.path().filename().string());
+			}
+			return res;
+		}
+
 		vector<string> find_same_extension_files(const string& dir_path_str, const string& extension)
 		{
 			FS::path dir_path{ dir_path_str };
@@ -112,7 +159,7 @@ namespace htf {
 					mark_string(dir_path.string()) + "不是目录或者不存在");
 			vector<string> res;
 			for (const auto& entry : FS::directory_iterator(dir_path)) {
-				if (entry.path().extension() == extension && !entry.is_directory()) 
+				if (entry.path().extension() == extension && entry.is_regular_file()) 
 					res.emplace_back(entry.path().filename().string());
 			}
 			return res;

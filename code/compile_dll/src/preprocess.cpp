@@ -116,7 +116,7 @@ namespace htf {
                             return t.first->hpath;
                     }
                 }
-                throw exception::Excep_dev{"preprocess.cpp::_first_not_find", "所有节点都存在"};
+                throw exception::Excep_dev{"preprocess.cpp::_first_not_find", _LINE + "所有节点都存在"};
                 return _vertaxs[0].first->hpath;
             }
 
@@ -193,7 +193,7 @@ namespace htf {
             {
                 for (const auto& x : t) {
                     Node* node = new Node{ x };
-                    if (_index(x) != -1) throw exception::Excep_dev{"preprocess.cpp::Graph::Graph", 
+                    if (_index(x) != -1) throw exception::Excep_dev{"preprocess.cpp::Graph::Graph",  _LINE +
                         "Node" + mark_string(x.str()) + "already exist"};
                     _vertaxs.emplace_back(make_pair(node, 0));
                 }

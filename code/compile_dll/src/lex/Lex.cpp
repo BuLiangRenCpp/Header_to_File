@@ -82,7 +82,12 @@ namespace htf {
             // **** const 处理：如果其后跟 type 则为 type，否则为 identifier ****
             auto token = _ts.get();
             if (token.val == "inline") return this->get();
+            if (token.val == "operator") {      // * operator 重载运算符函数名
+                token.val += _get_operator().val;
+                return Lexer{ Lexer_kind::IDENTIFIER_KIND, token };
+            }
             if (token.empty()) return Lexer{};
+
             Lexer lexer{ token };
             Lexer lexer_namespace;
             bool is_const_type = false;
@@ -307,6 +312,10 @@ namespace htf {
         {
             stream::Token token = _ts.get();
             if (token.val == "typedef") {       // typedef  old_type  new_type ;
+                if (usage::is_class_key(_ts.peek().val)) {  // typedef struct { } new_type ;
+                    _ts.ignore_until();
+                    _ts.ignore_between_bracket();
+                }
                 while (!_ts.eof()) {
                     if (_ts.peek().kind == ';') {
                         if (!my_std::is_in(token.val, _basic_types)) _basic_types.emplace_back(token.val);
@@ -368,6 +377,48 @@ namespace htf {
                 _ts.ignore_until(lbra);
             }
             if (is_template == false) _ts.putback(token);
+        }
+
+        stream::Token Lex::_get_operator()
+        {
+            stream::Token res{};
+            auto peek = _ts.peek();
+            // 1. new delete
+            if (peek.val == "new" || peek.val == "delete") {    
+                res.val += " " + _ts.get().val;
+                if (_ts.peek().kind == '[') {
+                    res.val += _ts.get().val;
+                    if (_ts.peek().kind == ']') res.val += _ts.get().val;
+                    else throw Excep_syntax{_hpath.str(), _ts.line(), "after" + mark_string(res.val) + 
+                        "lack of" + mark_char(']')};
+                }
+            }
+            // 2. () []
+            else if (usage::is_lbracket(peek.kind) && peek.kind != '<' && peek.kind != '{') {
+                res.val += _ts.get().val;
+                char c = usage::ret_rbracket(res.val[0]);
+                if (c == _ts.peek().kind) res.val +=  _ts.get().val;
+                else if (usage::is_bracket(_ts.peek().kind))
+                    throw Excep_syntax{_hpath.str(), _ts.line(), "after" + mark_string(res.val) + "lack of" + 
+                        mark_char(c)};
+                else throw Excep_syntax{_hpath.str(), _ts.line(), "after" + mark_string("operator") + 
+                    "lack of operator-char"};
+            }
+            // 3.  << 、 >>   ->
+            else if (peek.kind == Lexer_kind::DCHAR_KIND) {
+                if (peek.val == "<<" || peek.val == ">>" || peek.val == "->") res.val += _ts.get().val;
+                else throw Excep_syntax{_hpath.str(), _ts.line(), mark_string(peek.val) + "isn't legal operator"};
+            }
+            // 4. other
+            else if (usage::is_spe_ch(peek.kind)) {
+                while (!_ts.eof()) {
+                    if (_ts.peek().kind == '(') break;
+                    res.val += _ts.get().val;
+                }
+            }
+            else throw Excep_syntax{_hpath.str(), _ts.line(), "after" + mark_string("operator") + 
+                    "lack of operator-char"};
+            return res;
         }
     }
 }

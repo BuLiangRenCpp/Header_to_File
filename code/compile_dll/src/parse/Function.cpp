@@ -16,7 +16,7 @@ namespace htf {
             
         }
         
-        Function::Function(const Type& t, const stream::Identifier& n, const std::vector<Fun_arg>& args, bool is_const, bool is_construct)
+        Function::Function(const Type& t, const Fun_name& n, const std::vector<Fun_arg>& args, bool is_const, bool is_construct)
             :_type{ t }, _name{ n }, _args{ args }, _is_const{ is_const }, _is_construct{ is_construct }, _is_define{ false }
         {
             if (_is_construct) {    // 1. 析构函数
@@ -120,7 +120,7 @@ namespace htf {
                 if (lex.peek().kind != Lexer_kind::IDENTIFIER_KIND) 
                     throw exception::Excep_syntax{lex.hpath().str(), lex.line(), "after function" +   
                         mark_string(_type_name())+ "lack of identifier"};
-                _name = stream::Identifier{ lex.get().val };
+                _name = Fun_name{ lex.get().val };
                 if (!_get_args(lex)) {      // * 定义变量 
                     _clear();
                     return *this;

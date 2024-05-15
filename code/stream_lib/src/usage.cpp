@@ -8,7 +8,8 @@ using namespace output;
 
 const unordered_set<char> Lbrackets{ '(', '[', '{', '<' };      // 左括号集
 const unordered_set<char> Rbrackets{ ')', ']', '}', '>' };      // 右括号集
-const unordered_set<string> Dchars{ "::" };     
+const unordered_set<string> Dchars{ "::", "<<", ">>", "->" };     
+
 
 // ------------------------------- usage -------------------------------------
 namespace htf {

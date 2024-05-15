@@ -1,5 +1,6 @@
 #pragma once
 #include "Fun_arg.h"
+#include "Fun_name.h"
 #include "Lex.h"
 
 namespace htf {
@@ -10,7 +11,7 @@ namespace htf {
         public:
             // void();
             Function();
-            Function(const Type&, const stream::Identifier&, const std::vector<Fun_arg>&, bool is_const = false, bool is_construct = false);
+            Function(const Type&, const Fun_name&, const std::vector<Fun_arg>&, bool is_const = false, bool is_construct = false);
 
             bool empty() const;
 
@@ -32,7 +33,7 @@ namespace htf {
             
         private:
             Type _type;
-            stream::Identifier _name;
+            Fun_name _name;
             std::vector<Fun_arg> _args;
             bool _is_const;       // 参数列表后是否有 const
             bool _is_construct;     // 是否是析构函数

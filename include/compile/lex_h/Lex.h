@@ -65,6 +65,7 @@ namespace htf {
             // 处理 class (struct) [1 xxx] A [2 : xxx] [3 {}];  忽略 1 2
             // 默认模板类
             void _deal_class(bool is_template = true);
+            stream::Token _get_operator();
         };
     }
 }

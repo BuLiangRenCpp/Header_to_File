@@ -60,26 +60,31 @@ catch(htf::exception::Excep_arg& e)
     output::print_error(e.str());
     return 2;
 }
+catch(htf::exception::Excep_syntax& e)
+{
+    output::print_error(e.str());
+    return 3;
+}
 catch(htf::exception::Excep_dev& e)
 {
     output::print_warn("please contact the developer");
     output::print_error(e.str());
-    return 3;
+    return 4;
 }
 catch(htf::exception::Excep_base& e)
 {
     output::print_warn("please contact the developer");
     output::print_error(e.all());
-    return 4;
+    return 5;
 }
 catch(string& e)
 {
     output::print_warn("please contact the developer");
     output::print_error(e);
-    return 5;
+    return 6;
 }
 catch (...) {
     output::print_warn("please contact the developer");
     output::print_error("ERROR!");
-    return 6;
+    return 7;
 }

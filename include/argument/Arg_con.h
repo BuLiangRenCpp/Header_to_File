@@ -1,6 +1,10 @@
 #pragma once
 #include "header.h"
 
+/**
+ * * 目前仅支持最低一层的通配符处理
+ * [例] './*.h'  不支持 '* /file.h'
+*/
 namespace htf {
 	namespace argument{
 		// 指令中的content，目前只是路径，按照路径处理
@@ -13,6 +17,7 @@ namespace htf {
 			Arg_con(const std::vector<std::string>&);
 
 			std::vector<std::string> con() const;
+			std::string str() const;
 			bool insert(const Arg_con&);
 			bool empty() const;
 

@@ -106,6 +106,10 @@ namespace htf {
 
 				// * ii. 处理 Literal
 				if (c == '-' || isdigit(c) || c == '\'' || c == '\"') {		// ! 为了处理 #include "file_path"
+					if (_is.peek() == '>') {
+						_is.get();
+						return Token{ "->" };
+					}
 					_is.putback(c);
 					Literal t;
 					_is >> t;
@@ -114,12 +118,9 @@ namespace htf {
 					return {Token_kind::LITERAL_KIND, t.str()};
 				}
 
-				// * iii. Dchar (目前只有 "::")
-				if (c == ':' && _is.peek() == ':') {
-					string s = "::";
-					_is.get();
-					return Token{ s };
-				}
+				// * iii. Dchar
+				auto dchar = _get_dchar(c);
+				if (!dchar.empty()) return dchar;
 				
 				// * iiii. 特殊字符
 				return Token{ c };	
@@ -171,6 +172,26 @@ namespace htf {
 					break;
 				}
 			}
+		}
+
+		Token Token_stream::_get_dchar(char c)
+		{
+			if (c == ':' && _is.peek() == ':') {
+				string s = "::";
+				_is.get();
+				return Token{ s };
+			}
+			else if (c == '<' && _is.peek() == '<') {
+				string s = "<<";
+				_is.get();
+				return Token{ s };
+			}
+			else if (c == '>' && _is.peek() == '>') {
+				string s = ">>";
+				_is.get();
+				return Token{ s };
+			}
+			return Token{};
 		}
 	}
 }

@@ -48,6 +48,7 @@ namespace htf {
 			// 在使用此函数时已经判断了接下来的字符时 /*，现在下一个字符时 *
 			void _ignore_note(bool flag = false);
 			void _space_update_line();
+			Token _get_dchar(char c);
 		};
 	}
 }
