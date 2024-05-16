@@ -152,7 +152,9 @@ namespace A {
 > make install
 - 即可自动生成 htf-install 目录，工具位于 htf-install/bin/ 目录下
 > 
-- *[建议]*        
+
+
+#### *[建议]*        
 
 因为此工具使用的是指令调用 (类似 g++)，因此建议将 htf 所在路径加入环境变量，如此之后可以在任意目录下使用指令调用 htf
 
