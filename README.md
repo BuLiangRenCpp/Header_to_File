@@ -144,11 +144,11 @@ namespace A {
 ### 安装教程   
 
 #### 方案一：
-发行版提供 htf-x86_win 的压缩包，只需下载后解压即可使用
+发行版提供 htf-x64_win 的压缩包，只需下载后解压即可使用
 #### 方案二：
 通过 cmake 构建 (g++编译)
 - 下载源码到本地，在 ./build/ 目录下依次执行
-> cmake -G "MinGW Makefiles" .. -D U=1        
+> cmake .. -G "MinGW Makefiles" -D U=1        
 > make install
 - 即可自动生成 htf-install 目录，工具位于 htf-install/bin/ 目录下
 > 
@@ -198,6 +198,8 @@ namespace A {
 > - 可指定多个存在的目录
 > - -i 指定的 所有的文件 所在的目录可以省略
 > - 目前不支持通配符匹配目录
+
+> 参数之间可调换位置，除了 -o 只能有一个，其余参数可有多个
 
 ### 目前存在问题
 ##### 1. 通配符匹配问题
