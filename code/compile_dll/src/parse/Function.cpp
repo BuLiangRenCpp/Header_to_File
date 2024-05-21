@@ -2,6 +2,7 @@
 #include "output.h"
 #include "Excep_dev.h"
 #include "Excep_syntax.h"
+#include "usage_lex.h"
 
 using namespace std;
 using namespace output;
@@ -11,15 +12,15 @@ namespace htf {
 
     namespace parse {        
         Function::Function()        // 原本不能为空函数的，但是有的情况需要
-            :_type{ }, _name{ }, _args{ }, _is_const{ false }, _is_construct{ false }
+            :_type{ }, _name{ }, _args{ }, _is_const{ false }, _is_destructor{ false }, __var{ }
         {
             
         }
         
         Function::Function(const Type& t, const Fun_name& n, const std::vector<Fun_arg>& args, bool is_const, bool is_construct)
-            :_type{ t }, _name{ n }, _args{ args }, _is_const{ is_const }, _is_construct{ is_construct }, _is_define{ false }
+            :_type{ t }, _name{ n }, _args{ args }, _is_const{ is_const }, _is_destructor{ is_construct }, __var{ }
         {
-            if (_is_construct) {    // 1. 析构函数
+            if (_is_destructor) {    // 1. 析构函数
                 if (_is_const)
                     throw exception::Excep_dev{"Function::Function(...)", _LINE + "析构函数不能设为常量函数"};
                 if (!_args.empty())
@@ -40,12 +41,24 @@ namespace htf {
         bool Function::empty() const
         {
             return _type.empty() && _name.empty() && 
-                _args.empty() && _is_const == false && _is_construct == false;
+                _args.empty() && _is_const == false && _is_destructor == false;
+        }
+
+        bool Function::is_define() const
+        {
+            return this->empty() && !this->fail();
         }
 
         bool Function::fail() const
         {
-            return this->empty() && !_is_define;
+            return this->empty() && __var.empty();
+        }
+
+        string Function::var() const
+        {
+            if (!this->is_define())
+                throw exception::Excep_dev{"Function_var", _LINE + "this->fail() == false, 不是定义变量语句"};
+            return __var;
         }
 
         Function Function::get(Lex& lex, bool is_class)
@@ -56,7 +69,7 @@ namespace htf {
         string Function::str(unsigned int count) const
         {
             if (this->empty()) return "";
-            if (_is_const || _is_construct)
+            if (_is_const || _is_destructor)
                 throw exception::Excep_dev("Function::str", _LINE + "此函数是特殊函数(类的构造函数或者析构函数)，请使用" +
                      mark_string("str_class()") + "调用");
             string indentation(count, '\t');
@@ -65,20 +78,52 @@ namespace htf {
             return res;
         }
 
-        string Function::str_class(const stream::Identifier& class_name, unsigned int count) const
+        static string ret_vars(const vector<string>& class_vars)
+        {
+            auto size = class_vars.size();
+            string res = (size == 0) ? "" : ":";
+            for (int i = 0; i < size; i++) {
+                res += class_vars[i] + "{ }";
+                if (i < size - 1) res += ", ";
+            }
+            return res;
+        }
+
+        string Function::str_class(const stream::Identifier& class_name, unsigned int count, const vector<string>& class_vars) const
         {
             if (this->empty()) return "";
             if (class_name.empty())
                 throw exception::Excep_dev{"Function::str_class", _LINE + "class_name don't empty"};
             string indentation(count, '\t');
-            string modifier = (_is_construct) ? "~" : "";
+            // 修饰词 (目前这里仅指 '~')
+            string modifier = (_is_destructor) ? "~" : "";
+
             string res = indentation;
+
             if (_name.empty()) res += class_name.str() + "::" + modifier + _type.str();
             else res += _type.str() + " " + class_name.str() + "::" + _name.str();
+
             res += _ret_args();
             if (_is_const) res += " const"; 
+
+            // 初始化列表
+            if (_is_constructor()) res += "\n" + indentation + "\t" + ret_vars(class_vars);
+
             res += "\n" + indentation + "{" + "\n\n" + indentation + "}\n";
             return res;
+        }
+
+        Function::Function(const string& var)
+            :_type{ }, _name{ }, _args{ }, _is_const{ false }, _is_destructor{ false }, __var{ var }
+        {
+            if (!usage::is_identifier(var))
+                throw exception::Excep_dev{"Function::Function(const string&)", _LINE + mark_string(var) + 
+                    "isn't a identifier"};
+        }
+
+        bool Function::_is_constructor() const
+        {
+            return !this->empty() && !_is_destructor && _name.empty();
         }
 
         Function Function::_get_class_fun(Lex& lex)
@@ -86,7 +131,7 @@ namespace htf {
             _clear();
             if (lex.peek().kind == '~') {       // 析构函数
                 lex.get();
-                _is_construct = true;
+                _is_destructor = true;
                 if (!_get_noname_fun(lex)) { 
                     _clear();
                     return *this;
@@ -121,8 +166,17 @@ namespace htf {
                     throw exception::Excep_syntax{lex.hpath().str(), lex.line(), "after function" +   
                         mark_string(_type_name())+ "lack of identifier"};
                 _name = Fun_name{ lex.get().val };
-                if (!_get_args(lex)) {      // * 定义变量 
-                    _clear();
+                if (!_get_args(lex)) {      // ! 定义变量 
+                    if (is_class) {     // * 成员变量
+                        __var = _name.str();
+                        if (lex.peek().kind != ';') 
+                            throw exception::Excep_syntax{lex.hpath().str(), lex.line(),    
+                                "after define class-var lack of" + mark_char(';')};
+                        
+                        lex.get();
+                        *this = Function{ __var };
+                    }
+                    else _clear();
                     return *this;
                 };
                 if (lex.peek().val == "const") {
@@ -132,9 +186,7 @@ namespace htf {
                         mark_string(_str()) + "don't set const function"};
                 }
                 if (lex.peek().kind == '{') {       // * 定义语句
-                    _clear();
-                    _is_define = true;
-                    lex.ignore_between_bracket();
+                    _clear_define(lex);     
                 }
                 else if (lex.peek().kind != ';') 
                     throw exception::Excep_syntax{lex.hpath().str(), lex.line(), "after function" +  
@@ -154,9 +206,7 @@ namespace htf {
                 if (lex.eof()) return false;
                 
                 if (lex.peek().kind == '{') {       // * 定义语句
-                    _clear();
-                    _is_define = true;
-                    lex.ignore_between_bracket();
+                    _clear_define(lex);  
                 }
                 else if (lex.peek().kind == '=')     // A() = delete;
                     lex.ignore();
@@ -213,7 +263,7 @@ namespace htf {
 
         string Function::_type_name() const
         {
-            string s = (_is_construct) ? "~" : "";
+            string s = (_is_destructor) ? "~" : "";
             if (!_name.empty()) s = " " + _name.str();
             return _type.str() + s;
         }
@@ -236,7 +286,18 @@ namespace htf {
 
         void Function::_clear()
         {
-            *this = Function{};
+            *this = Function();
+        }
+
+        void Function::_clear_define(lex::Lex& lex)
+        {
+            _clear();
+            lex.ignore_between_bracket();
+            /**
+             * ! 为了保持一致性：因为 fail 表示读取了错误的函数，那么此程序将执行 clean_mess 清除
+             * !    当前语句，因此需要 putback(';')
+            */
+            lex.putback();   
         }
     }
 }

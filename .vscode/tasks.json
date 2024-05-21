@@ -5,14 +5,22 @@
     },
     "tasks": [
         {
+            "label": "update-include",
+            "type": "shell",
+            "command": "python3",
+            "args": [
+                "../code/update_include.py"
+            ]
+        },
+        {
             "label": "cmake",
             "type": "shell",
             "command": "cmake",
             "args": [
                 "..",
                 "-G \"MinGW Makefiles\"",
-                "-DU=1",     // User
-                // "-DD=1"     // Debug
+                // "-DU=1",     // User
+                "-DD=1"     // Debug
             ]
         },
         {
@@ -24,6 +32,7 @@
         {
             "label": "Build project",
             "dependsOn":[
+                "update-include",
                 "cmake",
                 "make"
             ]

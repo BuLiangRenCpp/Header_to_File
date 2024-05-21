@@ -3,6 +3,7 @@ import os
 import filecmp
 
 # ! 约定
+# ! 此文件用于 VScode 自动化，而不是在命令行使用的 (故当前路径为：build 目录)
 # ! 1. code中的每个目录含有inc的，则inc下的文件的父目录不是inc，而是inc的父目录 (不包括 _lib, _dll)
 # ! 2. 需要 update include 的目录(长度大于4)以 _lib, _dll 结尾
 # ! 3. update 后，include目录下为源文件的父目录 (1中说的父目录)
@@ -49,23 +50,28 @@ def copy_dir(src, tar):
     return True
 
 # *******************************
-src_dir = os.getcwd()
+build = os.getcwd()    # 当前路径为：build 目录
+if (os.path.basename(build) != 'build'):
+    print("~~~~~~~~~" + build + " isn't 'build' dir")
 inc_str = "inc"
 
 # update target
-target = os.path.dirname(src_dir)
-target = os.path.join(target, "include")
+root = os.path.dirname(build)
+
+code_dir = os.path.join(root, "code")
+target = os.path.join(root, "include")
 # ********************************
 
 # 当前目录下的所有子目录名称 (只找 以 '_lib' or '_dll' 结尾的目录, 如 xx_lib、xx_dll)
-sub_dirs = [name for name in os.listdir(os.curdir)
-        if (os.path.isdir(os.path.join(os.curdir, name))) and (len(name) > 4)  and \
+sub_dirs = [name for name in os.listdir(code_dir)
+        if (os.path.isdir(os.path.join(code_dir, name))) and (len(name) > 4)  and \
             (name.find("_lib") == len(name) - 4 or name.find("_dll") == len(name) - 4)]          
 
 # 目录下有 inc 的目录
 res_flag = False
+
 for sub_dir in sub_dirs:
-    src = os.path.join(src_dir, os.path.join(sub_dir, inc_str))
+    src = os.path.join(code_dir, os.path.join(sub_dir, inc_str))
     if (copy_dir(src, get_dir_name(os.path.join(target, sub_dir)))):
         res_flag = True
 

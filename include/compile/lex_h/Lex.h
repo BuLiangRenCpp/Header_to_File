@@ -29,7 +29,8 @@ namespace htf {
             Lex(std::istream& is, const path_deal::Hpath& hpath, const std::vector<std::string>& basic_types = {}, const std::vector<std::string>& containers = {});
 
 			bool eof();
-			void putback(const Lexer&);
+            // 默认放入 ';'
+			void putback(const Lexer& lexer = Lexer{ stream::Token{';'} });
             // 默认忽略一条语句
 			void ignore(const Lexer& lexer = Lexer{ stream::Token{ ';' } });
             void ignore_between_bracket();

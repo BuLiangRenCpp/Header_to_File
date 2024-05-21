@@ -9,6 +9,18 @@
 using namespace std;
 using namespace htf;
 
+/**
+ * * 希望新增功能：
+ * - 类的成员变量应能识别，用于构造函数的初始化列表，格式如下
+ *      A::A() 
+ *          :_a{ }
+ *      {
+ *      
+ *      }
+ * - 增加对 c++11 一些特性的支持，比如 virtual、override 等
+ * * - [目前感觉没必要] 对于函数参数，如果参数名省略的，自动添加默认参数名
+*/
+
 static void imitate(istream& is)
 {
 	argument::Htf_args a;

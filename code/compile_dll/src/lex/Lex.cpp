@@ -328,11 +328,13 @@ namespace htf {
             else if (token.val == "using") {
                 if (_ts.peek().val == "namespace")    // using namespace xx;
                     _ts.ignore();     
-                token = _ts.get();
-                if (!token.empty() && token.kind == stream::Token_kind::IDENTIFIER_KIND 
-                    && _ts.peek() == '=')    // using new_type = type; 
-                        if (!my_std::is_in(token.val, _basic_types)) _basic_types.emplace_back(token.val);
-                _ts.ignore();
+                else {
+                    token = _ts.get();
+                    if (!token.empty() && token.kind == stream::Token_kind::IDENTIFIER_KIND 
+                        && _ts.peek() == '=')    // using new_type = type; 
+                            if (!my_std::is_in(token.val, _basic_types)) _basic_types.emplace_back(token.val);
+                    _ts.ignore();
+                }
             }
             else if (!token.empty()) _ts.putback(token);
         }
