@@ -72,11 +72,11 @@ namespace htf {
                 cf.get(lex);          // 先是类再是类外函数，注意顺序
                 if (cf.empty()) {
                     f.get(lex);
-                    if (f.fail()) clear_mess(lex);
                     if (!f.empty()) {
                         ofs << f.str(count) << endl;
                         write_success = true;
                     }
+                    else clear_mess(lex);       // f.fail() = true
                 }
                 else {
                     ofs << cf.str(count) << endl;

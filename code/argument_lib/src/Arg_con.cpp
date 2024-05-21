@@ -36,9 +36,11 @@ namespace htf {
 				string file = path_deal::file_name(x);
 				if (file.find('*') != string::npos) {		// * 通配符处理
 					string parent_dir = path_deal::parent_dir(x);
+					// ****************************************************
 					if (parent_dir.find('*') != string::npos) 
 						throw Excep_arg{"Arg_con::Arg_con(...)", "in" + mark_string(x) + "," + mark_char('*') + 
 							"only appear in the file(last) at this version"};
+					// ****************************************************
 					string dir = normalize(current_dir(), parent_dir);
 					auto files = path_deal::regex_find_files(dir, file);
 					for (const auto& f : files) 

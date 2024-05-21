@@ -9,8 +9,8 @@ using namespace std;
  * * [例] unsigned long long 可以是 'unsigned' 'long' 组合而成
 */
 const unordered_set<string> Basic_Type_Keys{ "void", "bool", "char", "short", "int", "long", 
-"float", "double", "istream", "ostream", "string" };        // 基本类型关键字 
-const unordered_set<string> Container_Type_Keys{ "vector", "list", "deque", "array", "forwarod_list", "set", "multiset",
+"float", "double", "string", "istream", "ostream", "ifstream", "ofstream", "exception" };        // 基本类型关键字 
+const unordered_set<string> Container_Type_Keys{ "vector", "list", "deque", "array", "forward_list", "set", "multiset",
     "map", "multimap", "unordered_set", "unordered_multiset", "unordered_map", "unordered_multimap",
     "stack", "queue", "priority_queue", "pair" };
 const unordered_set<string> Modifier_Type_Keys{ "unsigned", "signed", "static" };     // 类型修饰词

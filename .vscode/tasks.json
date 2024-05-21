@@ -19,8 +19,8 @@
             "args": [
                 "..",
                 "-G \"MinGW Makefiles\"",
-                // "-DU=1",     // User
-                "-DD=1"     // Debug
+                "-DU=1",     // User
+                // "-DD=1"     // Debug
             ]
         },
         {

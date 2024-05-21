@@ -12,13 +12,13 @@ namespace htf {
 
     namespace parse {
         Class::Class()
-            :_name{ }, _funs{ }
+            :_name{ }, _funs{ }, __vars{ }
         {
             
         }
 
         Class::Class(const stream::Identifier& n, const vector<vector<Function>>& funs)
-            :_name{ n }, _funs{ funs }
+            :_name{ n }, _funs{ funs }, __vars{ }
         {
             if (funs.size() != 3) 
                 throw exception::Excep_dev("Class_fun::Class_fun", _LINE + 
@@ -104,7 +104,7 @@ namespace htf {
             }
             string class_key = token.val;
 
-            token = lex.get();	// 2. 类名 
+            token = lex.get();	// 2. 类名  (一定是 type --> 由 lex 处理)
             if (token.kind == Lexer_kind::TYPE_KIND && usage::is_identifier(token.val))		
                 _name = stream::Identifier{token.val};
             else throw exception::Excep_syntax{lex.hpath().str(), lex.line(), "after" + mark_string(class_key) +
@@ -155,9 +155,17 @@ namespace htf {
             return res;
         }
 
+        // 进判断是否有函数
         bool Class::empty() const
         {
-            return _name.empty();
+            bool res = true;
+            for (const auto& t : _funs) {
+                if (!t.empty()) {
+                    res = false;
+                    break;
+                }
+            }
+            return res;
         }
 
         void Class::_clear()

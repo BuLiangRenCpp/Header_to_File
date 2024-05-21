@@ -26,14 +26,11 @@ namespace htf {
             _htf_ins(args);
         }
 
-        // -------------------- private -----------------------
+        // -------------------- private ----------------------
 
-        void Resolve::_htf_ins(const Htf_args& htf_args) 
+        static void ret_value(const Htf_args& htf_args, bool& is_force, vector<string>& sources, vector<string> & includes, string& target_dir)
         {
             vector<Arg> args = htf_args.args();
-            vector<string> sources, includes;
-            string target_dir = current_dir();      // * 默认
-            bool is_force = false;
             if (args[0].key().ch() == args_const::FORCE_ARG) is_force = true;
 
             auto size = args.size();
@@ -65,6 +62,15 @@ namespace htf {
                 target_dir =  args[2].con().con()[0];
                 includes = args[3].con().con();
             }
+        }
+
+        void Resolve::_htf_ins(const Htf_args& htf_args) 
+        {
+            vector<Arg> args = htf_args.args();
+            vector<string> sources, includes;
+            string target_dir = current_dir();      // * 默认
+            bool is_force = false;
+            ret_value(htf_args, is_force, sources, includes, target_dir);
             // ***********************************************************
             vector<Hpath> hpaths;
             for (const auto& s : sources) 
@@ -74,11 +80,10 @@ namespace htf {
             for (const auto& s : includes) {
                 include_hdirs.emplace_back(Hdir{s});
             }
-            // **********************************************************
+            // *********************** main ********************************
             output::print_result("dependency processing...");
             auto ts = htf::core::preprocess(hpaths, include_hdirs);
-            output::print_result("success -> dependency process");
-            output::print_result("file outputting...");
+            output::print_result("\nfile outputting...");
             htf::core::compile(ts, hdir, is_force);
             output::print_result("over");
         }

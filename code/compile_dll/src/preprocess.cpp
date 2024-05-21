@@ -12,17 +12,6 @@ using namespace std;
 
 static string PRE_OUTPUT_FILE = "file.pre";     // 预处理输出文件的名称
 
-
-
-template <typename T>
-
-void unite(vector<T>& t1, const vector<T>& t2)
-{
-    for (const auto& t : t2) {
-        if (!my_std::is_in(t, t1)) t1.emplace_back(t);
-    }
-}
-
 template <typename T>
 // 如果 t1 与 t2 有相交的部分，则 t1 = t1 并 t2，返回 true
 // 否则 t1 不变，返回 false
@@ -35,7 +24,7 @@ static bool unite_reliance(vector<T>& t1, const vector<T>& t2)
             break;
         }
     }
-    if (flag) unite(t1, t2);
+    if (flag) t1 = my_std::unite(t1, t2);
     return flag;
 }
 

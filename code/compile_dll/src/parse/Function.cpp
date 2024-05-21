@@ -38,6 +38,7 @@ namespace htf {
             }
         }
 
+        // ! __var 不参与
         bool Function::empty() const
         {
             return _type.empty() && _name.empty() && 
@@ -167,13 +168,9 @@ namespace htf {
                         mark_string(_type_name())+ "lack of identifier"};
                 _name = Fun_name{ lex.get().val };
                 if (!_get_args(lex)) {      // ! 定义变量 
-                    if (is_class) {     // * 成员变量
+                    if (is_class) {     // * 成员变量  type var [;] or [= val ;] or [{};]
                         __var = _name.str();
-                        if (lex.peek().kind != ';') 
-                            throw exception::Excep_syntax{lex.hpath().str(), lex.line(),    
-                                "after define class-var lack of" + mark_char(';')};
-                        
-                        lex.get();
+                        lex.ignore();
                         *this = Function{ __var };
                     }
                     else _clear();

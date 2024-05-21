@@ -79,7 +79,6 @@ namespace htf {
             }
             // *************************************************************
 
-            // **** const 处理：如果其后跟 type 则为 type，否则为 identifier ****
             auto token = _ts.get();
             if (token.val == "inline") return this->get();
             if (token.val == "operator") {      // * operator 重载运算符函数名
@@ -88,6 +87,7 @@ namespace htf {
             }
             if (token.empty()) return Lexer{};
 
+            // **** const 处理：如果其后跟 type 则为 type，否则为 identifier ****
             Lexer lexer{ token };
             Lexer lexer_namespace;
             bool is_const_type = false;
