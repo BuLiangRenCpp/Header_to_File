@@ -202,11 +202,9 @@ namespace htf {
                 if (!_get_args(lex)) return false;
                 if (lex.eof()) return false;
                 
-                if (lex.peek().kind == '{') {       // * 定义语句
+                if (lex.peek().kind == '{' || lex.peek().kind == '=') {       // * 定义语句 or A() = delete;
                     _clear_define(lex);  
                 }
-                else if (lex.peek().kind == '=')     // A() = delete;
-                    lex.ignore();
                 else if (lex.peek().kind != ';') 
                     throw exception::Excep_syntax{lex.hpath().str(), lex.line(), "after function" +  
                         mark_string(_str()) + "lack of" + mark_char(';')};

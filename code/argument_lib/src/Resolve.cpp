@@ -83,7 +83,7 @@ namespace htf {
             // *********************** main ********************************
             output::print_result("dependency processing...");
             auto ts = htf::core::preprocess(hpaths, include_hdirs);
-            output::print_result("\nfile outputting...");
+            output::print_result("file outputting...");
             htf::core::compile(ts, hdir, is_force);
             output::print_result("over");
         }
