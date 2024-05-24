@@ -68,7 +68,7 @@ namespace htf {
 
             while (true)
             try{
-                if (!(lex.peek().val != "namespace" && lex.peek().kind != '}' && !lex.eof())) break;
+                if (lex.peek().kind == Lexer_kind::NAMESPACE_KIND || lex.peek().kind == '}' || lex.eof()) break;
                 cf.get(lex);          // 先是类再是类外函数，注意顺序
                 if (cf.empty()) {
                     f.get(lex);
@@ -95,11 +95,11 @@ namespace htf {
         static void rw_file(Bras& t, Lex& lex, ostream& ofs)
         {
             if (lex.eof()) return;
-            stream::Identifier name;
-            if (lex.peek().val == "namespace") {          // --- 区分" namespace A = ..."   "namespace A { }"
-                lex.get();
-                name = stream::Identifier{ lex.get().val };
-                if (lex.peek().kind != '{')
+            string name;
+            // namespace A { }
+            if (lex.peek().kind == Lexer_kind::NAMESPACE_KIND) {   
+                name = lex.get().val;
+                if (lex.peek().kind != '{')    
                     clear_mess(lex);
                 else {
                     t.brackets.push('{');
@@ -109,7 +109,7 @@ namespace htf {
             } 
             bool flag = rw_function(lex, ofs, t.brackets.size());
             // **************************************************************
-            if (lex.peek().val == "namespace") rw_file(t, lex, ofs);
+            if (lex.peek().kind == Lexer_kind::NAMESPACE_KIND) rw_file(t, lex, ofs);
             if (lex.peek().kind == '}') {       // * namespace 结束
                 print_indentation(ofs, t.brackets.size() - 1);
                 ofs << lex.get().kind << endl << endl;

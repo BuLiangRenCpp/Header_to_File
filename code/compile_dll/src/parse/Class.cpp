@@ -34,7 +34,7 @@ namespace htf {
             while (true) {
                 f.get(lex, true);
                 if (f.empty()) {
-                    if (!f.fail())     // * 先判断是否是定义成员变量语句
+                    if (f.is_define_var())     // * 先判断是否是定义成员变量语句
                         __vars.emplace_back(f.var());
                     else if ((lex.peek().val == "private" || lex.peek().val == "public" ||
                         lex.peek().val == "protected" || lex.peek().kind == '}')) break;

@@ -12,15 +12,16 @@ namespace htf {
             // void();
             Function();
             Function(const Type&, const Fun_name&, const std::vector<Fun_arg>&, bool is_const = false, bool is_construct = false);
+
             // ! 表示的是'函数为空'，__var 为内部变量，不参与判断
             // * 因此当返回 true 时，可能表示是 定义变量语句
             bool empty() const;
 
             // 是否是定义变量语句
-            bool is_define() const;
+            bool is_define_var() const;
 
             // * 是否读取失败 (不包括读取 定义变量语句)
-            // * 失败：除 函数声明以及定义变量 的语句
+            // * 失败：函数定义、A() = delete; 、错误格式
             bool fail() const;  
             
             std::string var() const;
@@ -73,8 +74,8 @@ namespace htf {
             // 返回声明语句 (不包含 ';')
             std::string _str() const; 
             void _clear();
-            // 当遇到 函数定义语句 时应做的处理
-            void _clear_define(lex::Lex&);
+            // 当遇到 函数定义语句 || A() = delete; 时应做的处理
+            void _clear_define_fun(lex::Lex&);
         };
     }
 }

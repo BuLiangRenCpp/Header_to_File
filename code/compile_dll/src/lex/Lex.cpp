@@ -64,7 +64,7 @@ namespace htf {
             if (!_buffer.empty()) {
                 return _buffer.get();
             }
-            // ************ 忽略预处理指令、类型别名、template **************
+            // ********** 忽略预处理指令、类型别名、template、namespace A = xx; ********
             if (_ts.peek().kind == '#') {
                 _ts.ignore_line();
                 return this->get();
@@ -76,8 +76,17 @@ namespace htf {
             else if (_ts.peek().val == "template") {
                 _deal_template();
                 return this->get();
+            } 
+            else if (_ts.peek().val == "namespace") {
+                _ts.get();
+                auto name = _get_namespace(false);
+                if (_ts.peek().kind == '=') {        // 处理 namespace A = xx;
+                    _ts.ignore();
+                    return this->get();
+                }
+                return name;
             }
-            // *************************************************************
+            // *****************************************************************
 
             auto token = _ts.get();
             if (token.val == "inline") return this->get();
@@ -171,24 +180,34 @@ namespace htf {
         {
             return _is_basic_type(t) || _is_container(t);
         }
-
-        Lexer Lex::_get_namespace()
+        
+        Lexer Lex::_get_namespace(bool is_type)
         {
-            if (_ts.peek().kind != Lexer_kind::IDENTIFIER_KIND) return Lexer{};
+            if (_ts.peek().kind != Lexer_kind::IDENTIFIER_KIND) {
+                if (!is_type) 
+                    throw Excep_syntax{_hpath.str(), _ts.line(), mark_string(_ts.peek().val) + 
+                        "isn't a legal namespace"};
+                return Lexer{};
+            }
             else {
                 stream::Token token = _ts.get();
                 Lexer lexer;
+                // 读取 'A::A:: ... A::'
                 while (_ts.peek().kind == Lexer_kind::DCHAR_KIND && _ts.peek().val == "::") {
-                    lexer.kind = Lexer_kind::TYPE_KIND;
                     lexer.val += token.val;
                     lexer.val += _ts.get().val;
                     token = _ts.get();
                     if (_is_type(token) || token.kind != Lexer_kind::IDENTIFIER_KIND) 
                         break;
                 }
-                if (token.empty()) 
-                    throw Excep_syntax{_hpath.str(), _ts.line(), "namespace" + mark_string(lexer.val) + "lack of type"};
-                _ts.putback(token);
+                if (is_type) _ts.putback(token);
+                else {
+                    lexer.val += token.val;
+                    if (token.kind != Lexer_kind::IDENTIFIER_KIND) 
+                        throw Excep_syntax{_hpath.str(), _ts.line(), mark_string(lexer.val) + 
+                            "isn't a legal namespace"};
+                }
+                if (!lexer.empty()) lexer.kind = Lexer_kind::NAMESPACE_KIND;
                 return lexer;
             }
             return Lexer{};
@@ -341,22 +360,20 @@ namespace htf {
 
         void Lex::_deal_template()
         {
-            if (_ts.peek().val == "template") {
-                stream::Token token = _ts.get();
-                if (_ts.peek().kind != '<') 
-                    throw Excep_syntax{_hpath.str(), _ts.line(), "after" + mark_string("template") + 
-                        "lack of" + mark_char('<')};
+            stream::Token token = _ts.get();
+            if (_ts.peek().kind != '<') 
+                throw Excep_syntax{_hpath.str(), _ts.line(), "after" + mark_string("template") + 
+                    "lack of" + mark_char('<')};
+            _ts.ignore_between_bracket();
+            if (usage::is_class_key(_ts.peek().val)) {      // 1. 模板类
+                _deal_class();
                 _ts.ignore_between_bracket();
-                if (usage::is_class_key(_ts.peek().val)) {      // 1. 模板类
-                    _deal_class();
-                    _ts.ignore_between_bracket();
-                    _ts.ignore();
-                } else {        // 2. 模板函数  
-                    _ts.ignore(stream::Token{ ')' });       // * 避免是定义语句
-                    if (_ts.peek().kind == ';') _ts.ignore();
-                    else _ts.ignore_between_bracket();
-                }
-            }   
+                _ts.ignore();
+            } else {        // 2. 模板函数  
+                _ts.ignore(stream::Token{ ')' });       // * 避免是定义语句
+                if (_ts.peek().kind == ';') _ts.ignore();
+                else _ts.ignore_between_bracket();
+            }
         }
 
         void Lex::_deal_class(bool is_template)
@@ -406,12 +423,12 @@ namespace htf {
                 else throw Excep_syntax{_hpath.str(), _ts.line(), "after" + mark_string("operator") + 
                     "lack of operator-char"};
             }
-            // 3.  << 、 >>   ->
+            // 3. ->
             else if (peek.kind == Lexer_kind::DCHAR_KIND) {
-                if (peek.val == "<<" || peek.val == ">>" || peek.val == "->") res.val += _ts.get().val;
+                if (peek.val == "->") res.val += _ts.get().val;
                 else throw Excep_syntax{_hpath.str(), _ts.line(), mark_string(peek.val) + "isn't legal operator"};
             }
-            // 4. other
+            // 4. << 、>> 、other 
             else if (usage::is_spe_ch(peek.kind)) {
                 while (!_ts.eof()) {
                     if (_ts.peek().kind == '(') break;

@@ -105,11 +105,7 @@ namespace htf {
 				}
 
 				// * ii. 处理 Literal
-				if (c == '-' || isdigit(c) || c == '\'' || c == '\"') {		// ! 为了处理 #include "file_path"
-					if (_is.peek() == '>') {
-						_is.get();
-						return Token{ "->" };
-					}
+				if ((c == '-' && isdigit(_is.peek())) || isdigit(c) || c == '\'' || c == '\"') {	// ! 为了处理 #include "file_path"
 					_is.putback(c);
 					Literal t;
 					_is >> t;
@@ -181,13 +177,8 @@ namespace htf {
 				_is.get();
 				return Token{ s };
 			}
-			else if (c == '<' && _is.peek() == '<') {
-				string s = "<<";
-				_is.get();
-				return Token{ s };
-			}
-			else if (c == '>' && _is.peek() == '>') {
-				string s = ">>";
+			if (c == '-' && _is.peek() == '>') {
+				string s = "->";
 				_is.get();
 				return Token{ s };
 			}

@@ -8,7 +8,12 @@ using namespace output;
 
 const unordered_set<char> Lbrackets{ '(', '[', '{', '<' };      // 左括号集
 const unordered_set<char> Rbrackets{ ')', ']', '}', '>' };      // 右括号集
-const unordered_set<string> Dchars{ "::", "<<", ">>", "->" };     
+
+/**
+ * * << 与 >> 不能当做 Dchars 处理，否则造成 vector < vector < int '>>' 报错
+*/
+const unordered_set<string> Dchars{ "::", "->" };     
+
 
 
 // ------------------------------- usage -------------------------------------

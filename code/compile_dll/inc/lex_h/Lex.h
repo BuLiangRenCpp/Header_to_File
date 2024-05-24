@@ -53,7 +53,8 @@ namespace htf {
             bool _is_basic_type(const stream::Token&) const;
             bool _is_container(const stream::Token&) const;
             bool _is_type(const stream::Token&) const;
-            Lexer _get_namespace();
+            // 默认读取的是 type 之前的 namespace(即 A::A::)
+            Lexer _get_namespace(bool is_type = true);
             Lexer _get_basic_type();
             Lexer _get_container();
             // 处理 'typedef B A;'  and 'using A = B;' (using namespace A; 直接忽略)
