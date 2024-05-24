@@ -115,9 +115,14 @@ namespace htf {
             if (!is_const_type) lexer_namespace = _get_namespace();             
             stream::Token peek = _ts.peek();
             if (!_is_type(peek)) {    // * 1. not type
-                if (!lexer_namespace.empty()) throw Excep_syntax{_hpath.str(), _ts.line(), "in namespace" + 
-                    mark_string(lexer_namespace.val) + "don't be declared type" + 
-                        mark_string(peek.val) + "." + mark_string("(if not syntax-error, it's developer's error)")};
+                if (!lexer_namespace.empty()) {     // ! 看做标识符，不返回 namespace 
+                    peek = _ts.get();
+                    if (peek.kind != Lexer_kind::IDENTIFIER_KIND)
+                        throw Excep_syntax{_hpath.str(), _ts.line(), "after namespace" + 
+                            mark_string(lexer_namespace.val) + "lack of identifier"};
+                    peek.val = lexer_namespace.val + peek.val;
+                    return Lexer{ peek };
+                }
                 if (peek.val == "class" || peek.val == "struct") {
                     peek = _ts.get();
                     _deal_class(false);

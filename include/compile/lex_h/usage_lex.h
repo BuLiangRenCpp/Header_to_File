@@ -39,8 +39,6 @@ namespace htf {
 			bool is_container_key(const std::string&);
 			// ****************************************
 
-			bool is_namespace(const std::string&);
-
 			// 是否是特殊字符 
 			inline bool is_spe_ch(char c)
 			{
