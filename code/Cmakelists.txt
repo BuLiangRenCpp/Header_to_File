@@ -1,0 +1,59 @@
+
+# ## temp file，用于测试code的代码，当测试成功后可直接删除此文件，不影其余文件
+
+cmake_minimum_required(VERSION 3.28)
+project(text)
+
+# ################################# set variable #####################################
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/bin)
+
+set(CUR ${CMAKE_CURRENT_SOURCE_DIR})
+set(BIN ${CUR}/bin) 
+set(INCLUDE ${CUR}/include)
+set(INC 
+    ${INCLUDE}
+    ${INCLUDE}/share
+    ${INCLUDE}/stream
+    ${INCLUDE}/argument
+    ${INCLUDE}/compile
+    ${INCLUDE}/compile/lex_h
+    ${INCLUDE}/compile/parse_h)
+    
+set(LIB ${CUR}/lib)
+
+set(SUB_DIR 
+    ${CUR}/share_dll
+    ${CUR}/stream_lib
+    ${CUR}/compile_dll
+    ${CUR}/argument_lib)
+
+set(LIB_NAME 
+    Share 
+    Stream
+    Compile
+    Args)
+
+# ################################## set macros ######################################
+if (R)
+    set(CMAKE_BUILD_TYPE Release)
+else()
+    set(CMAKE_BUILD_TYPE Debug)
+endif()
+
+foreach(dir ${SUB_DIR})
+    add_subdirectory(${dir})
+endforeach()
+
+# ################################## find dir ######################################
+aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/text SRC)
+include_directories(${INC})
+
+# ################################### target #######################################
+link_directories(${LIB})
+add_executable(text ${SRC})
+target_link_libraries(text ${LIB_NAME})
+
+# ################################## install #######################################
+

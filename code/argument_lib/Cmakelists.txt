@@ -1,0 +1,24 @@
+cmake_minimum_required(VERSION 3.28)
+project(argument)
+
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${LIB})
+
+set(SRC_DIR 
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/args
+    ${CMAKE_CURRENT_SOURCE_DIR}/src)
+
+foreach(dir ${SRC_DIR})
+    aux_source_directory(${dir} SRC)    
+endforeach()
+
+include_directories(${INC})
+
+set(LIB_NAME
+    Share
+    Compile
+)
+
+# target
+link_directories(${LIB})
+add_library(Args STATIC ${SRC})
+target_link_libraries(Args ${LIB_NAME})

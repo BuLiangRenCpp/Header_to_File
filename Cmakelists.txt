@@ -1,0 +1,72 @@
+cmake_minimum_required(VERSION 3.28)
+project(main)
+
+# **************************** config **************************************
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+
+# ****************************** path **********************************
+set(PRO ${CMAKE_CURRENT_SOURCE_DIR})        # project
+set(ROOT ${PRO})
+set(BIN ${PRO}/bin) 
+set(INCLUDE ${PRO}/include)
+set(INC 
+    ${INCLUDE}
+    ${INCLUDE}/share
+    ${INCLUDE}/stream
+    ${INCLUDE}/argument
+    ${INCLUDE}/compile
+    ${INCLUDE}/compile/lex_h
+    ${INCLUDE}/compile/parse_h)
+set(LIB ${PRO}/lib)
+
+set(CODE ${PRO}/code)
+set(SUB_DIR 
+    ${CODE}/share_dll
+    ${CODE}/stream_lib
+    ${CODE}/argument_lib
+    ${CODE}/compile_dll)
+
+set(LIB_NAME 
+    Share 
+    Stream
+    Compile
+    Args)
+
+
+# ********************************* build type *****************************************
+# -->  cmake -D D=..
+# default release
+
+if (U)
+    add_compile_options(-D USER)
+endif()
+
+if(D)
+    set(CMAKE_BUILD_TYPE Debug)
+else()
+    set(CMAKE_BUILD_TYPE Release)
+endif()
+
+foreach(dir ${SUB_DIR})
+    add_subdirectory(${dir})
+endforeach()
+
+# ************************* exe *************************************
+
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/bin)
+
+aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/src SRC)
+include_directories(${INC})
+
+link_directories(${LIB})
+add_executable(htf ${SRC})
+target_link_libraries(htf ${LIB_NAME})
+
+
+
+# ***************************** install *********************************
+set(CMAKE_INSTALL_PREFIX ${ROOT}/htf-install)
+
+install(DIRECTORY ${BIN}
+    DESTINATION .)
