@@ -11,6 +11,7 @@
 using namespace std;
 using namespace output;
 
+const string DLL_API_Str = "DLL_API";
 
 namespace htf {
     using namespace exception;
@@ -62,8 +63,21 @@ namespace htf {
         Lexer Lex::get()
         {
             if (!_buffer.empty()) {
+                // ! *******************************
+                if (_buffer.peek().val == DLL_API_Str) {
+                    _buffer.get();
+                    return this->get();
+                }
+                // ! *******************************
                 return _buffer.get();
             }
+            // ! *******************************
+            if (_ts.peek().val == DLL_API_Str) {
+                _ts.get();
+                return this->get();
+            }
+            // ! *******************************
+
             // ********** 忽略预处理指令、类型别名、template、namespace A = xx; ********
             if (_ts.peek().kind == '#') {
                 _ts.ignore_line();
@@ -115,7 +129,7 @@ namespace htf {
             if (!is_const_type) lexer_namespace = _get_namespace();             
             stream::Token peek = _ts.peek();
             if (!_is_type(peek)) {    // * 1. not type
-                if (!lexer_namespace.empty()) {     // ! 看做标识符，不返回 namespace 
+                if (!lexer_namespace.empty()) {     // ! 看做标识符
                     peek = _ts.get();
                     if (peek.kind != Lexer_kind::IDENTIFIER_KIND)
                         throw Excep_syntax{_hpath.str(), _ts.line(), "after namespace" + 
@@ -220,15 +234,15 @@ namespace htf {
 
         Lexer Lex::_get_basic_type()
         {
-            stream::Token token = _ts.get();
             Lexer lexer;
-            if (_is_basic_type(token)) {
+            if (_is_basic_type(_ts.peek())) {       // ! 不采用 putback，避免各个函数之间 _ts.putback 冲突
+                auto token = _ts.get();
                 lexer.kind = Lexer_kind::TYPE_KIND;
                 lexer.val += token.val;
                 // ******** 多个basic_type、指针、引用、数组 ***********      
                 stack<char> stk;
                 while (!_ts.eof()) {
-                    token = _ts.get();
+                    token = _ts.peek();
                     if (_is_basic_type(token)) 
                         lexer.val += " " + token.val;
                     else if (token.kind == '&' || token.kind == '*') 
@@ -244,24 +258,23 @@ namespace htf {
                         stk.pop();
                         lexer.val += token.val;
                     }
-                    else {
-                        _ts.putback(token);
-                        break;
-                    }
+                    else break;
+                    _ts.get();
                 }
                 if (!stk.empty()) 
                     throw Excep_syntax{_hpath.str(), _ts.line(), "after array" + mark_string(lexer.val) + 
                                 "lack of" + mark_char(']')};
-            } 
-            else _ts.putback(token);
+            }
+            if (lexer.empty()) 
+                throw Excep_dev{"Lex::_get_basic_type()", _LINE + "empty basic type"};
             return lexer; 
         }
 
         Lexer Lex::_get_container()
         {
-            stream::Token token = _ts.get();
             Lexer lexer;
-            if (_is_container(token)) {
+            if (_is_container(_ts.peek())) {
+                auto token = _ts.get();
                 lexer.kind = Lexer_kind::TYPE_KIND;
                 lexer.val += token.val;
                 if (_ts.peek().kind != '<') 
@@ -323,12 +336,12 @@ namespace htf {
                     }
                     }
                 }
-            } 
-            else if (!token.empty()) _ts.putback(token);
-
+            }
             // 2. 读取 <> 之后的部分 (可能有 & *)
             while (_ts.peek().kind == '&' || _ts.peek().kind == '*') 
                 lexer.val += _ts.get().val;
+            if (lexer.empty()) 
+                throw Excep_dev{"Lex::_get_container()", _LINE + "empty contanier"};
             return lexer;          
         }
 
@@ -360,12 +373,14 @@ namespace htf {
                     _ts.ignore();
                 }
             }
-            else if (!token.empty()) _ts.putback(token);
+            else throw Excep_dev{"Lex::_deal_define_type()", _LINE + mark_string(token.val) + "isn't typedef or using"};
         }
 
         void Lex::_deal_template()
         {
             stream::Token token = _ts.get();
+            if (token.val != "template")
+                throw Excep_dev{"Lex::_deal_template", _LINE + mark_string(token.val) + "isn't" + mark_string("template")};
             if (_ts.peek().kind != '<') 
                 throw Excep_syntax{_hpath.str(), _ts.line(), "after" + mark_string("template") + 
                     "lack of" + mark_char('<')};
@@ -381,6 +396,7 @@ namespace htf {
             }
         }
 
+        // 将 class 加入自定义类型，处理掉 class |...| A |...| {} 中 |...| 之间的部分
         void Lex::_deal_class(bool is_template)
         {
             stream::Token token = _ts.get();
@@ -396,10 +412,8 @@ namespace htf {
                 token = _ts.get();
             }
             // 忽略掉 |: xxx|  { }
-            if (!_ts.eof() && _ts.peek().kind != ';') {   // 避免 class A ;
-                auto lbra = stream::Token{ '{' };
-                _ts.ignore_until(lbra);
-            }
+            if (!_ts.eof() && _ts.peek().kind != ';')    // 避免 class A ;
+                _ts.ignore_until(stream::Token{ '{' });
             if (is_template == false) _ts.putback(token);
         }
 

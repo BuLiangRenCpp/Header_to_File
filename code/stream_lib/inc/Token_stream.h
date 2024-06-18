@@ -15,7 +15,6 @@ namespace htf {
 		public:
 			Token_stream() = delete;
 			Token_stream(std::istream&);
-
 			bool eof();
 			void sync();
 			void putback(const Token&);
