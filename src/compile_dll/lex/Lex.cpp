@@ -14,7 +14,7 @@ using namespace output;
 const string DLL_API_Str = "DLL_API";
 
 namespace htf {
-    using namespace exception;
+    using namespace excep;
     namespace lex {
         Lex::Lex(istream& is, const path_deal::Hpath& hpath, const std::vector<std::string>& basic_types, const std::vector<std::string>& containers)
             :_ts{ is }, _buffer{ }, _hpath{ hpath }, _basic_types{ basic_types }, _containers{ containers }
@@ -133,7 +133,7 @@ namespace htf {
                     peek = _ts.get();
                     if (peek.kind != Lexer_kind::IDENTIFIER_KIND)
                         throw Excep_syntax{_hpath.str(), _ts.line(), "after namespace" + 
-                            mark_string(lexer_namespace.val) + "lack of identifier"};
+                            mark(lexer_namespace.val) + "lack of identifier"};
                     peek.val = lexer_namespace.val + peek.val;
                     return Lexer{ peek };
                 }
@@ -204,7 +204,7 @@ namespace htf {
         {
             if (_ts.peek().kind != Lexer_kind::IDENTIFIER_KIND) {
                 if (!is_type) 
-                    throw Excep_syntax{_hpath.str(), _ts.line(), mark_string(_ts.peek().val) + 
+                    throw Excep_syntax{_hpath.str(), _ts.line(), mark(_ts.peek().val) + 
                         "isn't a legal namespace"};
                 return Lexer{};
             }
@@ -223,7 +223,7 @@ namespace htf {
                 else {
                     lexer.val += token.val;
                     if (token.kind != Lexer_kind::IDENTIFIER_KIND) 
-                        throw Excep_syntax{_hpath.str(), _ts.line(), mark_string(lexer.val) + 
+                        throw Excep_syntax{_hpath.str(), _ts.line(), mark(lexer.val) + 
                             "isn't a legal namespace"};
                 }
                 if (!lexer.empty()) lexer.kind = Lexer_kind::NAMESPACE_KIND;
@@ -253,8 +253,8 @@ namespace htf {
                     }
                     else if (token.kind == ']') {
                         if (stk.empty()) 
-                            throw Excep_syntax{_hpath.str(), _ts.line(), "after array" + mark_string(lexer.val) + 
-                                "lack of" + mark_char('[')};
+                            throw Excep_syntax{_hpath.str(), _ts.line(), "after array" + mark(lexer.val) + 
+                                "lack of" + mark('[')};
                         stk.pop();
                         lexer.val += token.val;
                     }
@@ -262,8 +262,8 @@ namespace htf {
                     _ts.get();
                 }
                 if (!stk.empty()) 
-                    throw Excep_syntax{_hpath.str(), _ts.line(), "after array" + mark_string(lexer.val) + 
-                                "lack of" + mark_char(']')};
+                    throw Excep_syntax{_hpath.str(), _ts.line(), "after array" + mark(lexer.val) + 
+                                "lack of" + mark(']')};
             }
             if (lexer.empty()) 
                 throw Excep_dev{"Lex::_get_basic_type()", _LINE + "empty basic type"};
@@ -278,8 +278,8 @@ namespace htf {
                 lexer.kind = Lexer_kind::TYPE_KIND;
                 lexer.val += token.val;
                 if (_ts.peek().kind != '<') 
-                    throw Excep_syntax{_hpath.str(), _ts.line(), "after template" + mark_string(token.val) 
-                        + "lack of" + mark_char('<')};
+                    throw Excep_syntax{_hpath.str(), _ts.line(), "after template" + mark(token.val) 
+                        + "lack of" + mark('<')};
 
                 token = _ts.get();
                 stack<char> stk;    // 用于判断 <> 是否合法 
@@ -300,8 +300,8 @@ namespace htf {
                             lexer.val += lexer_namespace.val + _get_basic_type().val;
                         else {
                             if (!stk.empty())
-                                throw Excep_syntax{_hpath.str(), _ts.line(), "in container" + mark_string(lexer.val + ">") 
-                                    + ", type" + mark_string(token.val) + "don't be declared"};
+                                throw Excep_syntax{_hpath.str(), _ts.line(), "in container" + mark(lexer.val + ">") 
+                                    + ", type" + mark(token.val) + "don't be declared"};
                         }
                         break;
                     }
@@ -315,7 +315,7 @@ namespace htf {
                     {
                         if (stk.empty()) 
                             throw Excep_syntax{_hpath.str(), _ts.line(), "container" + 
-                                mark_string(lexer.val) + "lack of" + mark_char('>')};
+                                mark(lexer.val) + "lack of" + mark('>')};
                         stk.pop();
                         lexer.val += token.val;
                         break;
@@ -373,17 +373,17 @@ namespace htf {
                     _ts.ignore();
                 }
             }
-            else throw Excep_dev{"Lex::_deal_define_type()", _LINE + mark_string(token.val) + "isn't typedef or using"};
+            else throw Excep_dev{"Lex::_deal_define_type()", _LINE + mark(token.val) + "isn't typedef or using"};
         }
 
         void Lex::_deal_template()
         {
             stream::Token token = _ts.get();
             if (token.val != "template")
-                throw Excep_dev{"Lex::_deal_template", _LINE + mark_string(token.val) + "isn't" + mark_string("template")};
+                throw Excep_dev{"Lex::_deal_template", _LINE + mark(token.val) + "isn't" + mark("template")};
             if (_ts.peek().kind != '<') 
-                throw Excep_syntax{_hpath.str(), _ts.line(), "after" + mark_string("template") + 
-                    "lack of" + mark_char('<')};
+                throw Excep_syntax{_hpath.str(), _ts.line(), "after" + mark("template") + 
+                    "lack of" + mark('<')};
             _ts.ignore_between_bracket();
             if (usage::is_class_key(_ts.peek().val)) {      // 1. 模板类
                 _deal_class();
@@ -414,7 +414,10 @@ namespace htf {
             // 忽略掉 |: xxx|  { }
             if (!_ts.eof() && _ts.peek().kind != ';')    // 避免 class A ;
                 _ts.ignore_until(stream::Token{ '{' });
-            if (is_template == false) _ts.putback(token);
+            // * 当不是模版时，说明当前 class 不能忽略
+            // * 在调用此函数前，'class' 已经被读取在临时变量中(get()函数的)了，
+            // *    而现在 token 保存的是 'class' 后的标识符，get() 函数需要返回的是 'class'，所以此标识符需要被 putback
+            if (is_template == false) _ts.putback(token);       
         }
 
         stream::Token Lex::_get_operator()
@@ -427,8 +430,8 @@ namespace htf {
                 if (_ts.peek().kind == '[') {
                     res.val += _ts.get().val;
                     if (_ts.peek().kind == ']') res.val += _ts.get().val;
-                    else throw Excep_syntax{_hpath.str(), _ts.line(), "after" + mark_string(res.val) + 
-                        "lack of" + mark_char(']')};
+                    else throw Excep_syntax{_hpath.str(), _ts.line(), "after" + mark(res.val) + 
+                        "lack of" + mark(']')};
                 }
             }
             // 2. () []
@@ -437,15 +440,15 @@ namespace htf {
                 char c = usage::ret_rbracket(res.val[0]);
                 if (c == _ts.peek().kind) res.val +=  _ts.get().val;
                 else if (usage::is_bracket(_ts.peek().kind))
-                    throw Excep_syntax{_hpath.str(), _ts.line(), "after" + mark_string(res.val) + "lack of" + 
-                        mark_char(c)};
-                else throw Excep_syntax{_hpath.str(), _ts.line(), "after" + mark_string("operator") + 
+                    throw Excep_syntax{_hpath.str(), _ts.line(), "after" + mark(res.val) + "lack of" + 
+                        mark(c)};
+                else throw Excep_syntax{_hpath.str(), _ts.line(), "after" + mark("operator") + 
                     "lack of operator-char"};
             }
             // 3. ->
             else if (peek.kind == Lexer_kind::DCHAR_KIND) {
                 if (peek.val == "->") res.val += _ts.get().val;
-                else throw Excep_syntax{_hpath.str(), _ts.line(), mark_string(peek.val) + "isn't legal operator"};
+                else throw Excep_syntax{_hpath.str(), _ts.line(), mark(peek.val) + "isn't legal operator"};
             }
             // 4. << 、>> 、other 
             else if (usage::is_spe_ch(peek.kind)) {
@@ -454,7 +457,7 @@ namespace htf {
                     res.val += _ts.get().val;
                 }
             }
-            else throw Excep_syntax{_hpath.str(), _ts.line(), "after" + mark_string("operator") + 
+            else throw Excep_syntax{_hpath.str(), _ts.line(), "after" + mark("operator") + 
                     "lack of operator-char"};
             return res;
         }

@@ -7,7 +7,7 @@
 #include "header.h"
 
 namespace htf {
-    namespace exception {
+    namespace excep {
         class DLL_API Excep_base {
         public:
             Excep_base() = delete;

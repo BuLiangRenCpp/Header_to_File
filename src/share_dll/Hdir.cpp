@@ -5,6 +5,7 @@
 #include "Hdir.h"
 #include "path_deal.h"
 #include "Excep_path.h"
+#include "output.h"
 
 using namespace std;
 
@@ -14,7 +15,7 @@ namespace htf {
 			:_dir{ s }
 		{
 			if (!is_exist_dir(s)) 
-				throw exception::Excep_path{"Hdir::Hdir(const string&)", "directory" + output::mark_string(s) + "not exist"};
+				throw excep::Excep_path{"Hdir::Hdir(const string&)", "directory" + output::mark(s) + "not exist"};
 		}
 
 		std::string Hdir::str() const

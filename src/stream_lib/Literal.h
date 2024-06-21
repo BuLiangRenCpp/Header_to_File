@@ -4,7 +4,6 @@
 
 namespace htf {
 	namespace stream{
-		// ---------------------------------- Liter类 ----------------------------------------
 		// 字面值(literal)：数字， ' '和" "包含的字符  (包括 ' ") 
 		// ! 不能处理其他进制的数字
 		class Literal {
@@ -21,11 +20,7 @@ namespace htf {
 			line_t _line;
 		};
 
-
-		// ------------------------ 重载 -----------------------------
-
 		std::istream& operator>>(std::istream& is, Literal& l);
-
 		std::ostream& operator<<(std::ostream& os, const Literal& l);
 	}
 }

@@ -14,9 +14,9 @@ namespace htf {
             :_hpath{ hpath }
         {
             if (!is_exist_file(hpath)) 
-                throw exception::Excep_path{"path_deal::Hpath::Hpath", "file" + output::mark_string(hpath) + "not exist"};
+                throw excep::Excep_path{"path_deal::Hpath::Hpath", "file" + output::mark(hpath) + "not exist"};
             if (!is_header_extension(extension(hpath))) 
-                throw exception::Excep_path{"path_deal::Hpath::Hpath", "file" + output::mark_string(hpath) + "isn't a legal C++ header file"};
+                throw excep::Excep_path{"path_deal::Hpath::Hpath", "file" + output::mark(hpath) + "isn't a legal C++ header file"};
         }
 
         string Hpath::change_extension(const string& extension)

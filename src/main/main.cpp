@@ -1,5 +1,5 @@
-#include "Resolve.h"
 #include "output.h"
+#include "Resolve.h"
 #include "excep.h"
 
 #ifdef _WIN32
@@ -15,10 +15,6 @@ using namespace htf;
  * * - [目前感觉没必要] 对于函数参数，如果参数名省略的，自动添加默认参数名
 */
 
-/**
- * ! BUG:
-*/
-
 static void imitate(istream& is)
 {
 	argument::Htf_args a;
@@ -32,7 +28,7 @@ static string to_str(int cnt, char* argv[])
 	string res;
 	for (int i = 1; i < cnt; i++) {
         string s = string(argv[i]);
-        if (s.find(' ') != string::npos) s = output::mark_string(string(argv[i]));
+        if (s.find(' ') != string::npos) s = output::mark(string(argv[i]));
         res += s + " ";
     }
 	return res;
@@ -60,17 +56,17 @@ try {
     imitate(is);
     return 0;
 }
-catch(htf::exception::Excep_path& e)
+catch(htf::excep::Excep_path& e)
 {
     output::print_error(e.str());
     return 1;
 }
-catch(htf::exception::Excep_arg& e)
+catch(htf::excep::Excep_arg& e)
 {
     output::print_error(e.str());
     return 2;
 }
-catch(htf::exception::Excep_syntax& e)
+catch(htf::excep::Excep_syntax& e)
 {
     output::print_error(e.str());
     return 3;
@@ -80,13 +76,13 @@ catch(regex_error& e)
     output::print_error(e.what());
     return 4;
 }
-catch(htf::exception::Excep_dev& e)
+catch(htf::excep::Excep_dev& e)
 {
     output::print_warn("please contact the developer");
     output::print_error(e.str());
     return 5;
 }
-catch(htf::exception::Excep_base& e)
+catch(htf::excep::Excep_base& e)
 {
     output::print_warn("please contact the developer");
     output::print_error(e.all());

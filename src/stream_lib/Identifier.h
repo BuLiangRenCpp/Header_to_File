@@ -1,6 +1,6 @@
 #pragma once
 
-#include "usage.h"
+#include "header.h"
 
 namespace htf {
 	namespace stream {
@@ -18,11 +18,7 @@ namespace htf {
 			std::string _name;
 		};
 
-
-		// ------------------------ 重载 -----------------------------
-
 		std::istream& operator>>(std::istream& is, Identifier& n);
-
 		std::ostream& operator<<(std::ostream& os, const Identifier& n);
 	}
 }

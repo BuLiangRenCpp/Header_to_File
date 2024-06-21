@@ -4,7 +4,7 @@
 #endif
 
 #include "dll.h"
-#include "output.h"
+#include "header.h"
 
 // ** 注: path_deal 中的 file_extension 是已经定义在源文件中的，其余的都认为不是扩展名
 namespace htf {

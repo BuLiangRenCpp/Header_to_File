@@ -6,6 +6,7 @@
 #include "Excep_syntax.h"
 #include "Token_stream.h"
 #include "Excep_dev.h"
+#include "output.h"
 #include "Excep_syntax.h"
 
 using namespace std;
@@ -105,7 +106,7 @@ namespace htf {
                             return t.first->hpath;
                     }
                 }
-                throw exception::Excep_dev{"preprocess.cpp::_first_not_find", _LINE + "所有节点都存在"};
+                throw excep::Excep_dev{"preprocess.cpp::_first_not_find", _LINE + "所有节点都存在"};
                 return _vertaxs[0].first->hpath;
             }
 
@@ -126,14 +127,14 @@ namespace htf {
                 vector<vector<Hpath>> res;
                 vector<Node*> firs = _first();
                 if (firs.empty() && !_vertaxs.empty())  
-                    throw exception::Excep_syntax{_vertaxs[0].first->hpath.str(), 0, "存在循环依赖"};
+                    throw excep::Excep_syntax{_vertaxs[0].first->hpath.str(), 0, "存在循环依赖"};
                 for (Node* t : firs) {
                     vector<Hpath> temp;
                     _dfs(temp, t);
                     _push(res, temp);
                 }
                 if (!_equal(res)) 
-                    throw exception::Excep_syntax{_first_not_find(res).str(), 0, "存在循环依赖"};
+                    throw excep::Excep_syntax{_first_not_find(res).str(), 0, "存在循环依赖"};
                 return res;
             }
 
@@ -165,7 +166,7 @@ namespace htf {
                     }
                 }
                 if (res.size() < nodes.size()) 
-                    throw exception::Excep_syntax{nodes[index_first_not_find(nodes, res)].str(), 0, "存在循环依赖"};
+                    throw excep::Excep_syntax{nodes[index_first_not_find(nodes, res)].str(), 0, "存在循环依赖"};
                 return res;
             }
             
@@ -182,8 +183,8 @@ namespace htf {
             {
                 for (const auto& x : t) {
                     Node* node = new Node{ x };
-                    if (_index(x) != -1) throw exception::Excep_dev{"preprocess.cpp::Graph::Graph",  _LINE +
-                        "Node" + mark_string(x.str()) + "already exist"};
+                    if (_index(x) != -1) throw excep::Excep_dev{"preprocess.cpp::Graph::Graph",  _LINE +
+                        "Node" + mark(x.str()) + "already exist"};
                     _vertaxs.emplace_back(make_pair(node, 0));
                 }
             }
@@ -272,10 +273,10 @@ namespace htf {
                             break;
                         }
                     }
-                    if (!found) throw exception::Excep_syntax{source.str(), ts.line(), "not find" + mark_string(file)};
+                    if (!found) throw excep::Excep_syntax{source.str(), ts.line(), "not find" + mark(file)};
                     Hpath temp{ path };
                     if (temp == source)
-                        throw exception::Excep_syntax{source.str(), ts.line(), "存在循环依赖"};
+                        throw excep::Excep_syntax{source.str(), ts.line(), "存在循环依赖"};
                     if (v.insert_edge(temp, source))
                         preprocess_recur(v, temp, include);
                 }

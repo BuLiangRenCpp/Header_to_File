@@ -141,12 +141,12 @@ namespace output{
     }
 
 
-    string mark_string(const string& s, const string& c)
+    string mark(const string& s, const string& c)
     {
         return (" " + c + s + c + " ");
     }
 
-    string mark_char(char s, char c)
+    string mark(char s, char c)
     {
         string res = " ";
         res += c;

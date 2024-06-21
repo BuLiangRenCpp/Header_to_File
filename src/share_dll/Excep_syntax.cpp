@@ -13,12 +13,12 @@ using namespace output;
 namespace htf {
     using namespace path_deal;
 
-    namespace exception {
+    namespace excep {
         Excep_syntax::Excep_syntax(const string& where_path, line_t line, const string& what)
-            :exception::Excep_base{where_path, what}, _line{ line }
+            :excep::Excep_base{where_path, what}, _line{ line }
         {
             if (!is_exist(where_path)) 
-                throw exception::Excep_dev{"preprocess::Excep_syntax::Excep_syntax", _LINE + mark_string(where_path) + 
+                throw excep::Excep_dev{"preprocess::Excep_syntax::Excep_syntax", _LINE + mark(where_path) + 
                     " not exist, argument 'where_path' must be exist"};
         }
 
@@ -29,15 +29,15 @@ namespace htf {
 
         string Excep_syntax::str() const
         {
-            string line = (this->line() == 0) ? "" : mark_string("line " + to_string(this->line()));
-            return "c++ syntax" + mark_string(this->where()) + ": \n" + line + "-> " + this->what();
+            string line = (this->line() == 0) ? "" : mark("line " + to_string(this->line()));
+            return "c++ syntax" + mark(this->where()) + ": \n" + line + "-> " + this->what();
         }
 
         ostream& operator<<(ostream& os, const Excep_syntax& e)
         {
             os << "c++ syntax";
-            string line = (e.line() == 0) ? "" : mark_string("line " + to_string(e.line()));
-            os << mark_string(e.where()) + ": \n" + line + "-> " + e.what();
+            string line = (e.line() == 0) ? "" : mark("line " + to_string(e.line()));
+            os << mark(e.where()) + ": \n" + line + "-> " + e.what();
             return os;
         }
     }

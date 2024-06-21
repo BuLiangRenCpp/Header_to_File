@@ -1,33 +1,33 @@
-#include "output.h"
 #include "args_const.h"
 #include "args_judge.h" 
 #include "Excep_arg.h"
 #include "Excep_dev.h"
+#include "output.h"
 
 using namespace std;
 using namespace output;
 using namespace htf::argument;
-using namespace htf::exception;
+using namespace htf::excep;
 
 static bool is_htf_args(const vector<char>& args)
 {
     bool is_i = false, is_o = false, is_I = false, is_f = false;
     for (char c : args) {
         if (!args_judge::is_arg(c)) 
-            throw Excep_arg("args_judge.cpp::is_htf_args", mark_char(c) + "isn't a legal argument");
+            throw Excep_arg("args_judge.cpp::is_htf_args", mark(c) + "isn't a legal argument");
 
         if (c == args_const::INPUT_ARG) 
             is_i = true;
         else if (c == args_const::OUTPUT_ARG) {
             if (is_o) 
                 throw Excep_arg("args_judge.cpp::is_htf_args", "argument" +
-                            mark_char(c) + "only apppear once");
+                            mark(c) + "only apppear once");
             is_o = true;
         }
     }
     if (is_i == false)
         throw Excep_arg("args_judge.cpp::is_htf_args",  "lack of" + 
-                    mark_char(args_const::INPUT_ARG));
+                    mark(args_const::INPUT_ARG));
     return true;
 }
 
@@ -59,7 +59,7 @@ namespace htf {
             int arg_count_max(char c)
             {
                 if (!is_arg(c))
-                    throw Excep_dev{"args_judge::arg_count_max", _LINE + mark_char(c) + "不是参数"};
+                    throw Excep_dev{"args_judge::arg_count_max", _LINE + mark(c) + "不是参数"};
                 return (is_harg(c)) ? Hargs_Cnt.at(c) : 0;
             }
 

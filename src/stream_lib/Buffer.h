@@ -5,8 +5,9 @@ namespace htf {
     namespace stream {
         template <typename T>
         // * [0]: buffer   [1]: peek
-        // * 因为 peek() 会将下一个 token 放入 buffer 中，如果 buffer 只有一个，那么以下代码会报错
+        // * 因为 原Token_stream::peek() 会将下一个 token 放入 buffer 中，如果 buffer 只能装一个，那么以下代码会报错
         // *    this->peek();   this->putback(token);
+        // * 因此建立此类在逻辑上保留 buffer 只有一个，但是 不会发生上述报错
         class Buffer {
         public:
             Buffer() :_buffer{ std::vector<T>(2, T{}) } { }
@@ -41,14 +42,14 @@ namespace htf {
             void putback(const T& t)
             {
                 if (this->full()) 
-                    throw exception::Excep_dev{"Buffer::putback", "buffer is full"};
+                    throw excep::Excep_dev{"Buffer::putback", "buffer is full"};
                 _buffer[0] = t;
             }
 
             void push_peek(const T& t)
             {
                 if (!this->empty_peek()) 
-                    throw exception::Excep_dev{"Buffer::push_peek", "peek is full"};
+                    throw excep::Excep_dev{"Buffer::push_peek", "peek is full"};
                 _buffer[1] = t;
             }
 

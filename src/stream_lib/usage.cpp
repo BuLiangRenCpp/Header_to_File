@@ -15,8 +15,6 @@ const unordered_set<char> Rbrackets{ ')', ']', '}', '>' };      // 右括号集
 const unordered_set<string> Dchars{ "::", "->" };     
 
 
-
-// ------------------------------- usage -------------------------------------
 namespace htf {
     namespace stream {
         using namespace Token_kind;
@@ -48,7 +46,7 @@ namespace htf {
                 case '>':
                     return '<';
                 default:
-                    throw htf::exception::Excep_dev("usage.cpp::ret_rbracket", _LINE + mark_char(c) + "不是右括号");
+                    throw htf::excep::Excep_dev("usage.cpp::ret_rbracket", _LINE + mark(c) + "不是右括号");
                 }
                 return ' ';
             }
@@ -65,7 +63,7 @@ namespace htf {
                 case '<':
                     return '>';
                 default:
-                    throw htf::exception::Excep_dev("usage.cpp::ret_rbracket", _LINE + mark_char(c) + "不是左括号");
+                    throw htf::excep::Excep_dev("usage.cpp::ret_rbracket", _LINE + mark(c) + "不是左括号");
                 }
                 return ' ';
             }

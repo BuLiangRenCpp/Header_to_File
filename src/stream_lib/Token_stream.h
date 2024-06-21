@@ -1,9 +1,4 @@
 #pragma once
-#ifdef _WIN32
-#define LIB_EXPORT
-#endif
-
-#include "dll.h"
 #include "Token.h"
 #include "Buffer.h"
 
@@ -11,7 +6,7 @@
 // 自动忽略注释，同时判断注释格式是否正确
 namespace htf {
 	namespace stream {
-		class DLL_API Token_stream {
+		class Token_stream {
 		public:
 			Token_stream() = delete;
 			Token_stream(std::istream&);

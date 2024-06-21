@@ -6,9 +6,9 @@
 #include "Excep_base.h"
 
 namespace htf {
-    namespace exception {
+    namespace excep {
         // C++头文件语法错误
-        class DLL_API Excep_syntax : public exception::Excep_base {
+        class DLL_API Excep_syntax : public excep::Excep_base {
         public:
             Excep_syntax() = delete;
             // file line content

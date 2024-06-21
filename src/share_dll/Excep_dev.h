@@ -2,12 +2,10 @@
 #ifdef _WIN32
 #define LIB_EXPORT
 #endif
-
 #include "Excep_base.h"
 
-
 namespace htf {
-    namespace exception {
+    namespace excep {
         // 开发error，用于提示开发错误，以便修复系统BUG
         class DLL_API Excep_dev : public Excep_base {
         public:

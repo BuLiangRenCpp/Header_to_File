@@ -7,7 +7,7 @@
 using namespace std;
 
 namespace htf {
-    namespace exception {    
+    namespace excep {    
         Excep_base::Excep_base(const string& where, const string& what)
             :_where{ where }, _what{ what }
         {

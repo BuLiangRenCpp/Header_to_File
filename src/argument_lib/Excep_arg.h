@@ -2,7 +2,7 @@
 #include "Excep_base.h"
 
 namespace htf {
-    namespace exception {
+    namespace excep {
         // 指令参数错误
         class DLL_API Excep_arg : public Excep_base {
         public:

@@ -18,6 +18,7 @@
  * !        此时是定义语句，直接忽略，故不影响程序正确执行)
  * ! 4. 对于模版直接忽略 (因为 模板一般直接定义在头文件)
  * ! 5. * inline 直接忽略
+ * ! 6. #define xx xxxxxx 中 'xx' 直接忽略，应为无法正确处理展开的内容，故直接忽略
 */
 
 namespace htf {
@@ -26,7 +27,8 @@ namespace htf {
         public:
             Lex() = delete;
             // hpath 用来标明 is 的文件路径，用于 throw Excep_syntax
-            Lex(std::istream& is, const path_deal::Hpath& hpath, const std::vector<std::string>& basic_types = {}, const std::vector<std::string>& containers = {});
+            Lex(std::istream& is, const path_deal::Hpath& hpath, const std::vector<std::string>& basic_types = {}, 
+                const std::vector<std::string>& containers = {});
 
 			bool eof();
             // 默认放入 ';'

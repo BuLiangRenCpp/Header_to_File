@@ -25,12 +25,12 @@ namespace htf {
                 return Lexer_kind::Kinds.count(c);
             }
             
-            bool is_lbracket(const char& c)
+            bool is_lbracket(char c)
             {
                 return stream::usage::is_lbracket(c);
             }
 
-            bool is_rbracket(const char& c)
+            bool is_rbracket(char c)
             {
                 return stream::usage::is_rbracket(c);
             }

@@ -21,10 +21,10 @@ namespace htf {
             :_name{ n }, _funs{ funs }, __vars{ }
         {
             if (funs.size() != 3) 
-                throw exception::Excep_dev("Class_fun::Class_fun", _LINE + 
+                throw excep::Excep_dev("Class_fun::Class_fun", _LINE + 
                     "argument 'vector<vector<Function>*> funs.size' must be 3");
             if (n.empty() && (!funs[0].empty() || !funs[1].empty() || !funs[2].empty())) 
-                throw exception::Excep_dev("Class_fun::Class_fun", _LINE + "class name don't empty");
+                throw excep::Excep_dev("Class_fun::Class_fun", _LINE + "class name don't empty");
         }
 
         vector<Function> Class::_get_function(Lex& lex)
@@ -63,22 +63,22 @@ namespace htf {
             while (token.kind != '}' && !token.empty()) {
                 if (token.val == "public") {	// 1. public
                     if (lex.peek().kind != ':')
-                        throw exception::Excep_syntax(lex.hpath().str(), lex.line(), "after"
-                             + mark_string(token.val) + "lack of" + mark_char(':'));
+                        throw excep::Excep_syntax(lex.hpath().str(), lex.line(), "after"
+                             + mark(token.val) + "lack of" + mark(':'));
                     token = lex.get();
                     unite(pub, _get_function(lex));
                 }
                 else if (token.val == "protected") {		// 2. protected
                     if (lex.peek().kind != ':')
-                        throw exception::Excep_syntax(lex.hpath().str(), lex.line(), "after"
-                             + mark_string(token.val) + "lack of" + mark_char(':'));
+                        throw excep::Excep_syntax(lex.hpath().str(), lex.line(), "after"
+                             + mark(token.val) + "lack of" + mark(':'));
                     token = lex.get();
                     unite(pro, _get_function(lex));
                 }
                 else if (token.val == "private") {	  // 3. private
                     if (lex.peek().kind != ':')
-                        throw exception::Excep_syntax(lex.hpath().str(), lex.line(), "after"
-                             + mark_string(token.val) + "lack of" + mark_char(':'));
+                        throw excep::Excep_syntax(lex.hpath().str(), lex.line(), "after"
+                             + mark(token.val) + "lack of" + mark(':'));
                     token = lex.get();
                     unite(pri, _get_function(lex));
                 }
@@ -107,12 +107,12 @@ namespace htf {
             token = lex.get();	// 2. 类名  (一定是 type --> 由 lex 处理)
             if (token.kind == Lexer_kind::TYPE_KIND && usage::is_identifier(token.val))		
                 _name = stream::Identifier{token.val};
-            else throw exception::Excep_syntax{lex.hpath().str(), lex.line(), "after" + mark_string(class_key) +
-                "lack of identifier(class-name), " + mark_string(token.val) + "isn't a legal class-name"};
+            else throw excep::Excep_syntax{lex.hpath().str(), lex.line(), "after" + mark(class_key) +
+                "lack of identifier(class-name), " + mark(token.val) + "isn't a legal class-name"};
             
             if (lex.peek().kind != '{')     
-                throw exception::Excep_syntax{lex.hpath().str(), lex.line(), "after" +  
-                    mark_string(class_key + _name.str()) + "lack of" + mark_char('{')};
+                throw excep::Excep_syntax{lex.hpath().str(), lex.line(), "after" +  
+                    mark(class_key + _name.str()) + "lack of" + mark('{')};
             token = lex.get();
 
             if (class_key == "struct") _get_functions(lex, false);
@@ -120,8 +120,8 @@ namespace htf {
 
             // 4. 剩下 ';'，可能会有变量名，直接忽略到 ';'
             if (lex.peek().kind != ';' && lex.peek().kind != Lexer_kind::IDENTIFIER_KIND)
-                throw exception::Excep_syntax{lex.hpath().str(), lex.line(), "after" +
-                    mark_string(class_key + " " + _name.str() + "{}") + "lack of" + mark_char(';')};
+                throw excep::Excep_syntax{lex.hpath().str(), lex.line(), "after" +
+                    mark(class_key + " " + _name.str() + "{}") + "lack of" + mark(';')};
             lex.ignore();
             return *this;
         }

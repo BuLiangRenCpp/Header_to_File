@@ -22,19 +22,19 @@ namespace htf {
         {
             if (_is_destructor) {    // 1. 析构函数
                 if (_is_const)
-                    throw exception::Excep_dev{"Function::Function(...)", _LINE + "析构函数不能设为常量函数"};
+                    throw excep::Excep_dev{"Function::Function(...)", _LINE + "析构函数不能设为常量函数"};
                 if (!_args.empty())
-                    throw exception::Excep_dev{"Function::Function(...)", _LINE + "析构函数不能有参数"};
+                    throw excep::Excep_dev{"Function::Function(...)", _LINE + "析构函数不能有参数"};
                 if (!_name.empty()) 
-                    throw exception::Excep_dev{"Function::Function(...)", _LINE + "析构函数函数名应为空"};
+                    throw excep::Excep_dev{"Function::Function(...)", _LINE + "析构函数函数名应为空"};
             }
             else if (_is_const) {   // 2. 常量函数
                 if (_name.empty())     // # 构造函数
-                    throw exception::Excep_dev{"Function::Function(...)", _LINE + "构造函数不能设为常量函数"};
+                    throw excep::Excep_dev{"Function::Function(...)", _LINE + "构造函数不能设为常量函数"};
             }
             else {      // 3. 一般函数
                 if (_name.empty())
-                    throw exception::Excep_dev{"Function::Function(...)", _LINE + "缺少函数名"};
+                    throw excep::Excep_dev{"Function::Function(...)", _LINE + "缺少函数名"};
             }
         }
 
@@ -58,7 +58,7 @@ namespace htf {
         string Function::var() const
         {
             if (!this->is_define_var())
-                throw exception::Excep_dev{"Function_var", _LINE + "this->fail() == false, 不是定义变量语句"};
+                throw excep::Excep_dev{"Function_var", _LINE + "this->fail() == false, 不是定义变量语句"};
             return __var;
         }
 
@@ -71,8 +71,8 @@ namespace htf {
         {
             if (this->empty()) return "";
             if (_is_const || _is_destructor)
-                throw exception::Excep_dev("Function::str", _LINE + "此函数是特殊函数(类的构造函数或者析构函数)，请使用" +
-                     mark_string("str_class()") + "调用");
+                throw excep::Excep_dev("Function::str", _LINE + "此函数是特殊函数(类的构造函数或者析构函数)，请使用" +
+                     mark("str_class()") + "调用");
             string indentation(count, '\t');
             string res = indentation + _type_name() + _ret_args() + "\n";
             res += indentation + "{" + "\n\n" + indentation + "}\n";
@@ -94,7 +94,7 @@ namespace htf {
         {
             if (this->empty()) return "";
             if (class_name.empty())
-                throw exception::Excep_dev{"Function::str_class", _LINE + "class_name don't empty"};
+                throw excep::Excep_dev{"Function::str_class", _LINE + "class_name don't empty"};
             string indentation(count, '\t');
             // 修饰词 (目前这里仅指 '~')
             string modifier = (_is_destructor) ? "~" : "";
@@ -118,7 +118,7 @@ namespace htf {
             :_type{ }, _name{ }, _args{ }, _is_const{ false }, _is_destructor{ false }, __var{ var }
         {
             if (!usage::is_identifier(var))
-                throw exception::Excep_dev{"Function::Function(const string&)", _LINE + mark_string(var) + 
+                throw excep::Excep_dev{"Function::Function(const string&)", _LINE + mark(var) + 
                     "isn't a identifier"};
         }
 
@@ -138,8 +138,8 @@ namespace htf {
                     return *this;
                 } else {
                     if (!_args.empty()) 
-                        throw exception::Excep_syntax{lex.hpath().str(), lex.line(), "析构函数" +   
-                            mark_string(_type_name() + _ret_args()) + "参数列表应该为空"};
+                        throw excep::Excep_syntax{lex.hpath().str(), lex.line(), "析构函数" +   
+                            mark(_type_name() + _ret_args()) + "参数列表应该为空"};
                 }
             } 
             else if (lex.peek().kind == Lexer_kind::TYPE_KIND) {
@@ -164,8 +164,8 @@ namespace htf {
             if (lex.peek().kind == Lexer_kind::TYPE_KIND) {
                 _type = Type{ lex.get() };
                 if (lex.peek().kind != Lexer_kind::IDENTIFIER_KIND) 
-                    throw exception::Excep_syntax{lex.hpath().str(), lex.line(), "after function" +   
-                        mark_string(_type_name())+ "lack of identifier"};
+                    throw excep::Excep_syntax{lex.hpath().str(), lex.line(), "after function" +   
+                        mark(_type_name())+ "lack of identifier"};
                 _name = Fun_name{ lex.get().val };
                 if (!_get_args(lex)) {      
                     // ! ************** 定义变量 ********************
@@ -181,15 +181,15 @@ namespace htf {
                 if (lex.peek().val == "const") {
                     lex.get();
                     if (is_class) _is_const = true;
-                    else throw exception::Excep_syntax{lex.hpath().str(), lex.line(), "normal-function" +  
-                        mark_string(_str()) + "don't set const function"};
+                    else throw excep::Excep_syntax{lex.hpath().str(), lex.line(), "normal-function" +  
+                        mark(_str()) + "don't set const function"};
                 }
                 if (lex.peek().kind == '{' || lex.peek().kind == '=') {       // * 定义语句 or A a() = delete;
                     _clear_define_fun(lex);     
                 }
                 else if (lex.peek().kind != ';') 
-                    throw exception::Excep_syntax{lex.hpath().str(), lex.line(), "after function" +  
-                        mark_string(_str()) + "lack of" + mark_char(';')};
+                    throw excep::Excep_syntax{lex.hpath().str(), lex.line(), "after function" +  
+                        mark(_str()) + "lack of" + mark(';')};
             }
             return *this;
         }
@@ -199,8 +199,8 @@ namespace htf {
             if (lex.peek().kind == Lexer_kind::TYPE_KIND) {
                 _type = Type{ lex.get() };
                 if (lex.peek().kind != '(') 
-                    throw exception::Excep_syntax{lex.hpath().str(), lex.line(), "after" + mark_string(_type_name()) + 
-                        "must be" + mark_char('(')};
+                    throw excep::Excep_syntax{lex.hpath().str(), lex.line(), "after" + mark(_type_name()) + 
+                        "must be" + mark('(')};
                 if (!_get_args(lex)) return false;
                 if (lex.eof()) return false;
                 
@@ -208,8 +208,8 @@ namespace htf {
                     _clear_define_fun(lex);  
                 }
                 else if (lex.peek().kind != ';') 
-                    throw exception::Excep_syntax{lex.hpath().str(), lex.line(), "after function" +  
-                        mark_string(_str()) + "lack of" + mark_char(';')};
+                    throw excep::Excep_syntax{lex.hpath().str(), lex.line(), "after function" +  
+                        mark(_str()) + "lack of" + mark(';')};
                 else lex.ignore();
                 return true;
             }   
@@ -231,8 +231,8 @@ namespace htf {
                     // 1. type
                     auto type = lex.get();
                     if (type.kind != Lexer_kind::TYPE_KIND) {
-                        throw exception::Excep_syntax{lex.hpath().str(), lex.line(), "in function" + 
-                            mark_string(_type_name() + "(...)") + "," + mark_string(type.val) + "isn't type"};
+                        throw excep::Excep_syntax{lex.hpath().str(), lex.line(), "in function" + 
+                            mark(_type_name() + "(...)") + "," + mark(type.val) + "isn't type"};
                     }
                     // 2. arg_name
                     stream::Identifier name;
@@ -251,8 +251,8 @@ namespace htf {
                     }
                 }
                 if (!found) 
-                    throw exception::Excep_syntax{lex.hpath().str(), lex.line(), "after function" + 
-                        mark_string(_type_name() + "(") + "lack of" + mark_char(')')};
+                    throw excep::Excep_syntax{lex.hpath().str(), lex.line(), "after function" + 
+                        mark(_type_name() + "(") + "lack of" + mark(')')};
                 return true;
             }
             return false;

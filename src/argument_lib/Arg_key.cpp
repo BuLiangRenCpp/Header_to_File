@@ -1,8 +1,8 @@
-#include "output.h"
 #include "Arg_key.h" 
 #include "args_const.h"
 #include "args_judge.h"
 #include "Excep_arg.h"
+#include "output.h"
 
 using namespace std;
 using namespace output;
@@ -12,7 +12,7 @@ using namespace output;
 // -------------------- public -----------------------
 
 namespace htf {
-	using namespace exception;
+	using namespace excep;
 
 	namespace argument{
 		using namespace args_const;
@@ -28,7 +28,7 @@ namespace htf {
 			:_ch{ c } 
 		{
 			if (!is_arg(c)) 
-				throw Excep_arg("Arg_key::Arg_key", mark_char(c) + "isn't a legal argument");
+				throw Excep_arg("Arg_key::Arg_key", mark(c) + "isn't a legal argument");
 		}
 
 		char Arg_key::ch() const

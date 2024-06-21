@@ -3,11 +3,10 @@
 #define LIB_EXPORT
 #endif
 
-#include "dll.h"
 #include "Excep_base.h"
 
 namespace htf {
-    namespace exception {
+    namespace excep {
         // 开发error，用于提示开发错误，以便修复系统BUG
         class DLL_API Excep_path : public Excep_base {
         public:

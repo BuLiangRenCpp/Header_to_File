@@ -4,10 +4,15 @@
 
 #include <filesystem>
 #include "path_deal.h"
+#include "output.h"
 #include "Excep_path.h"
 
 using namespace std;
+using namespace output;
 
+namespace FS = std::filesystem;
+
+// *************************************************************************************
 const unordered_set<string> Extensions{ ".txt", ".h", ".hpp", ".h++", ".inl",
 		".cpp", ".cxx", ".c++", ".c", ".cc" };			// 扩展名集合
 const unordered_set<string> Header_Extensions{ ".h", ".hpp", ".h++", ".inl" };		// 头文件扩展名集合
@@ -15,9 +20,7 @@ const unordered_set<string> Source_Extensions{ ".cpp", ".cxx", ".c++", ".c", ".c
 
 // 在特殊字符前加上的字符 
 const unordered_map<char, char> Reg_Insert_Str{ {'*', '.'}, {'.', '\\'} };
-
-using namespace output;
-namespace FS = std::filesystem;
+// *************************************************************************************
 
 static vector<int> _index(char c, const string& s)
 {
@@ -44,8 +47,6 @@ static void legal_regex(string& s)
 	index = _index('*', s);
 	_insert(s, '*', index);
 }
-
-
 
 static bool is_extension(const string& s)
 {
@@ -137,8 +138,8 @@ namespace htf {
 		vector<string> regex_find_files(const string& dir_path_str, string pattern)
 		{
 			if (!is_exist_dir(dir_path_str))	
-				throw exception::Excep_path{"path_deal::regex_find_files", "directory" + 
-					mark_string(dir_path_str) + "not exist"};
+				throw excep::Excep_path{"path_deal::regex_find_files", "directory" + 
+					mark(dir_path_str) + "not exist"};
 			legal_regex(pattern);
 			FS::path dir_path{ dir_path_str };
 			if (!FS::is_directory(dir_path)) return {};
@@ -155,8 +156,8 @@ namespace htf {
 		{
 			FS::path dir_path{ dir_path_str };
 			if (!FS::is_directory(dir_path)) 
-				throw exception::Excep_path("path_deal::find_same_extension_files",
-					mark_string(dir_path.string()) + "不是目录或者不存在");
+				throw excep::Excep_path("path_deal::find_same_extension_files",
+					mark(dir_path.string()) + "不是目录或者不存在");
 			vector<string> res;
 			for (const auto& entry : FS::directory_iterator(dir_path)) {
 				if (entry.path().extension() == extension && entry.is_regular_file()) 
@@ -169,8 +170,8 @@ namespace htf {
 		{
 			FS::path dir_path{ dir };
 			if (!FS::is_directory(dir_path)) 
-				throw exception::Excep_path("path_deal::find_same_extension_files",
-					mark_string(dir_path.string()) + "不是目录或者不存在");
+				throw excep::Excep_path("path_deal::find_same_extension_files",
+					mark(dir_path.string()) + "不是目录或者不存在");
 			vector<string> res;
 			for (const auto& entry : FS::directory_iterator(dir_path)) {
 				if (is_header_extension(entry.path().extension().string()) && !entry.is_directory()) 
@@ -198,7 +199,7 @@ namespace htf {
 		{
 			FS::path f{ s };
 			if (!FS::exists(s)) 
-				throw exception::Excep_path("path_deal::remove_file", mark_string(s) + "not exist");
+				throw excep::Excep_path("path_deal::remove_file", mark(s) + "not exist");
 			return FS::remove(f);
 		}
 
@@ -206,7 +207,7 @@ namespace htf {
 		{
 			FS::path f{ s };
 			if (FS::exists(s)) 
-				throw exception::Excep_path("path_deal::remove_file", mark_string(s) + "already exist");
+				throw excep::Excep_path("path_deal::remove_file", mark(s) + "already exist");
 			return FS::create_directories(s);
 		}
 	}

@@ -8,7 +8,7 @@ using namespace std;
 using namespace output;
 
 namespace htf {
-    namespace exception {
+    namespace excep {
         Excep_dev::Excep_dev(const string& where, const string& what)
             :Excep_base{where, what}
         {

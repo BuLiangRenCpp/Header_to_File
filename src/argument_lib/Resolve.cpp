@@ -4,6 +4,7 @@
 #include "Hdir.h"
 #include "preprocess.h"
 #include "compile.h"
+#include "output.h"
 
 using namespace std;
 using namespace output;

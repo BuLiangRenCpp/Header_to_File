@@ -17,7 +17,7 @@ namespace htf {
             :_type{ l.val }
         {
             if (l.kind != lex::Lexer_kind::TYPE_KIND) 
-                throw exception::Excep_dev{"parse::Type::Type", _LINE + "lexer.kind isn't type_kind"};
+                throw excep::Excep_dev{"parse::Type::Type", _LINE + "lexer.kind isn't type_kind"};
         }
 
         string Type::str() const

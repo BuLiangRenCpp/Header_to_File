@@ -1,9 +1,6 @@
-#ifdef _WIN32
-#define LIB_EXPORT
-#endif
-
 #include "Token_stream.h"
 #include "Excep_dev.h"
+#include "usage.h"
 #include "Literal.h"
 #include "Identifier.h"
 #include "output.h"
@@ -12,7 +9,7 @@ using namespace std;
 using namespace output;
 
 namespace htf {
-	using namespace exception;
+	using namespace excep;
 	namespace stream {
 		Token_stream::Token_stream(istream& is)
 			:_is{ is }, _buffer{ }, _line{ 1 }

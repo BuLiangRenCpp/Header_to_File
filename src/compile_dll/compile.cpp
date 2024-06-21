@@ -6,6 +6,7 @@
 #include "Excep_syntax.h"
 #include "Excep_path.h"
 #include "output.h"
+#include "usage.h"
 
 #include "Class.h"
 #include "Lex.h"
@@ -22,7 +23,7 @@ namespace htf {
         static bool input_y_n()
         {
             while (true) {
-                print_enter(mark_char('y') + "or" + mark_char('n'));
+                print_enter(mark('y') + "or" + mark('n'));
                 string line;
                 getline(cin, line);
                 stream::usage::delete_space_pre_suf(line);
@@ -65,7 +66,7 @@ namespace htf {
             Function f;
             Class cf;
             bool write_success = false;     // 是否写入成功
-
+            bool is_first = true;       // 格式化
             while (true)
             try{
                 if (lex.peek().kind == Lexer_kind::NAMESPACE_KIND || lex.peek().kind == '}' || lex.eof()) break;
@@ -73,17 +74,21 @@ namespace htf {
                 if (cf.empty()) {
                     f.get(lex);
                     if (!f.empty()) {
-                        ofs << f.str(count) << endl;
+                        if (!is_first) ofs << "\n";
+                        ofs << f.str(count);
                         write_success = true;
+                        is_first = false;
                     }
                     else clear_mess(lex);       // f.fail() = true
                 }
                 else {
-                    ofs << cf.str(count) << endl;
+                    if (!is_first) ofs << "\n";
+                    ofs << cf.str(count);
                     write_success = true;
+                    is_first = false;
                 }
             }
-            catch (exception::Excep_syntax& e)
+            catch (excep::Excep_syntax& e)
             {
                 print_warn(e.str());
                 clear_mess(lex);
@@ -112,9 +117,9 @@ namespace htf {
             if (lex.peek().kind == Lexer_kind::NAMESPACE_KIND) rw_file(t, lex, ofs);
             if (lex.peek().kind == '}') {       // * namespace 结束
                 print_indentation(ofs, t.brackets.size() - 1);
-                ofs << lex.get().kind << endl << endl;
+                ofs << lex.get().kind << endl;
                 if (t.brackets.empty()) 
-                    throw exception::Excep_syntax(lex.hpath().str(), lex.line(), "lack of" + mark_char('{'));
+                    throw excep::Excep_syntax(lex.hpath().str(), lex.line(), "lack of" + mark('{'));
                 t.brackets.pop();
                 rw_file(t, lex, ofs);
             }
@@ -133,30 +138,30 @@ namespace htf {
             if (is_exist_file(output_path)) {       // 是否覆盖源文件
                 is_already_exist = true;
                 if (!is_force) {
-                    print_warn(mark_string(output_path) + "already exist, do you want to overwrite the source file?" + 
+                    print_warn(mark(output_path) + "already exist, do you want to overwrite the source file?" + 
                         "(y / n)");
                     if (!input_y_n()) return _pre(lex);
                 }
             } 
 
             ofstream ofs(output_path);
-            if (!ofs) throw exception::Excep_path("compile.cpp::_compile", "not open file" + mark_string(output_path));
+            if (!ofs) throw excep::Excep_path("compile.cpp::_compile", "not open file" + mark(output_path));
 
             // ********************** write file ***************************
             ofs << "#include";
-            ofs << mark_string(file_name(lex.hpath().str())) << "\n\n";
+            ofs << mark(file_name(lex.hpath().str())) << "\n\n";
             Bras t;
             try {
                 rw_file(t, lex, ofs);
             }
-            catch (exception::Excep_syntax& e) {
+            catch (excep::Excep_syntax& e) {
                 print_warn(e.str());
             }
 
             // ************************ print result ********************************
             if (t.write_success) print_result("success -> " + output_path);
             else {
-                print_error("failure ->" + mark_string(lex.hpath().str()) + 
+                print_error("failure ->" + mark(lex.hpath().str()) + 
                     ", check if there are function declaration statement or syntax in the file");
                 ofs.close();
                 if (!is_already_exist) path_deal::remove_file(output_path);       // * 删除失败文件

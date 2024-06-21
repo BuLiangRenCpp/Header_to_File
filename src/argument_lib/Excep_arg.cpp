@@ -9,7 +9,7 @@ using namespace std;
 using namespace output;
 
 namespace htf {
-    namespace exception {
+    namespace excep {
         Excep_arg::Excep_arg(const string& where, const string& what)
             :Excep_base{where, what}
         {

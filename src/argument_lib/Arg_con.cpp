@@ -3,6 +3,7 @@
 #include "path_deal.h"
 #include "args_judge.h"
 #include "Excep_arg.h"
+#include "output.h"
 
 using namespace std;
 using namespace output;
@@ -19,7 +20,7 @@ static bool is_arg_style(const string& s)
 // -------------------- public -----------------------
 
 namespace htf {
-	using namespace exception;
+	using namespace excep;
 	using namespace path_deal;
 	namespace argument{
 		Arg_con::Arg_con() 
@@ -38,7 +39,7 @@ namespace htf {
 					string parent_dir = path_deal::parent_dir(x);
 					// ****************************************************
 					if (parent_dir.find('*') != string::npos) 
-						throw Excep_arg{"Arg_con::Arg_con(...)", "in" + mark_string(x) + "," + mark_char('*') + 
+						throw Excep_arg{"Arg_con::Arg_con(...)", "in" + mark(x) + "," + mark('*') + 
 							"only appear in the file(last) at this version"};
 					// ****************************************************
 					string dir = normalize(current_dir(), parent_dir);
@@ -98,7 +99,7 @@ namespace htf {
 				}
 				s += c;
 			}
-			if (flag == false) throw Excep_arg("Ins_par_con.cpp::get_content", "缺少" + mark_char(target));
+			if (flag == false) throw Excep_arg("Ins_par_con.cpp::get_content", "缺少" + mark(target));
 			return s;
 		}
 

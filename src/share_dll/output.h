@@ -23,7 +23,7 @@ namespace output{
 
     // 在 s 前后加上 c 后，同时在前后各加一个空格 
     // 用于标记输出中的特别字符，加以强调
-    DLL_API std::string mark_string(const std::string& s, const std::string& c = "\"");
-    DLL_API std::string mark_char(char s, char c = '\"');
+    DLL_API std::string mark(const std::string& s, const std::string& c = "\"");
+    DLL_API std::string mark(char s, char c = '\"');
 }
 

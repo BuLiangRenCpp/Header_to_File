@@ -7,7 +7,7 @@ using namespace std;
 using namespace output;
 
 namespace htf {
-    using namespace exception;
+    using namespace excep;
     namespace lex {
         using namespace Lexer_kind;
         using namespace usage;
@@ -21,14 +21,16 @@ namespace htf {
 		Lexer::Lexer(const stream::Token& t)
 			:kind{ t.kind }, val{ t.val }
 		{
-
+			// 虽然目前的 lexer_kind 包含 token_kind，但是以防万一今后有变动 
+			if (!usage::is_spe_ch(kind) && !is_kind(kind))
+				throw Excep_dev{"Lexer::Lexer(const Token&)", _LINE + mark(kind) + "isn't lexer's kind"};
 		}
 
 		Lexer::Lexer(char c, const stream::Token& t)
 			:kind{ c }, val{ t.val }
 		{
-			if (!is_kind(kind)) 
-				cout << " xxx " << endl;
+			if (!usage::is_spe_ch(c) && !is_kind(c))
+				throw Excep_dev{"Lexer::Lexer(const Token&)", _LINE + mark(kind) + "isn't lexer's kind"};
 		}
 
 		bool Lexer::empty() const

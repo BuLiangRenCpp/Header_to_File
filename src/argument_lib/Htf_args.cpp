@@ -67,7 +67,7 @@ static void legal_htf_ins(vector<Arg>& args)
 
 
 namespace htf {
-    using namespace exception;
+    using namespace excep;
     namespace argument {
         using namespace args_judge;
 
@@ -81,7 +81,7 @@ namespace htf {
         Htf_args::Htf_args(const vector<Arg>& args)
             :_args{ args }
         {
-            if (args.empty()) throw Excep_arg("Htf_args::Htf_args", mark_string("htf") + "no input files");
+            if (args.empty()) throw Excep_arg("Htf_args::Htf_args", mark("htf") + "no input files");
             if (is_htf_args_throw(to_chars(args))) 
                 _legalize();
         }
@@ -106,7 +106,7 @@ namespace htf {
                 args.emplace_back(a);
             }
             if (args.empty() && !is.eof()) throw Excep_arg("Htf_args.cpp::operator>>", 
-                mark_string("htf") + "error argument format");
+                mark("htf") + "error argument format");
             t = Htf_args{ args };
             return is;
         }

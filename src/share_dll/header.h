@@ -19,20 +19,22 @@
 namespace output { }
 
 namespace htf {
-    #define _LINE output::mark_string("line " + to_string(__LINE__)) + "-> "
-
+    #define _LINE output::mark("line " + to_string(__LINE__)) + "-> "
 	using line_t = unsigned long long;      // 记录文件行数
 
-    namespace stream { }
-    namespace exception { }
-    namespace path_deal { }
-    namespace argument { 
-        namespace args_judge { }
-        namespace args_const { }
+    namespace excep {};
+    namespace path_deal {};
+    namespace stream {
+        namespace Token_kind {}
+        namespace usage {}
     }
-    namespace lex { }
-    namespace parse { }
-    namespace core { }
+    namespace lex {
+        namespace Lexer_kind {}
+        namespace usage {}
+    }
+    namespace parse {}
+    namespace core {}
+    namespace arugment {}
 }
 
 

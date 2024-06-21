@@ -1,5 +1,6 @@
 #include "Identifier.h"
 #include "output.h"
+#include "usage.h"
 #include "Excep_dev.h"
 
 using namespace std;
@@ -12,13 +13,9 @@ static bool is_name_ch(char c)
 
 
 namespace htf {
-    using namespace exception;
+    using namespace excep;
     namespace stream{
         using namespace usage;
-        
-        // --------------------------- Identifier类 ------------------------------------------
-        // ----------------- pubilc ---------------------
-
         Identifier::Identifier()
             :_name{}
         {
@@ -29,7 +26,7 @@ namespace htf {
             :_name{ s }
         {   
             if (s.empty()) return;
-            if (!is_identifier(s)) throw Excep_dev("Identifier::Identifier", _LINE + "非法标识符" + mark_string(s));
+            if (!is_identifier(s)) throw Excep_dev("Identifier::Identifier", _LINE + "非法标识符" + mark(s));
         }
 
         string Identifier::str() const
@@ -41,9 +38,6 @@ namespace htf {
         {
             return _name == "";
         }
-
-
-        // ------------------------ 重载 -----------------------------
 
         istream& operator>>(istream& is, Identifier& n)
         {

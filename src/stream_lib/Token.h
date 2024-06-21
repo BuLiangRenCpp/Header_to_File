@@ -1,5 +1,4 @@
 #pragma once
-
 #include "Token_kind.h"
 
 namespace htf {

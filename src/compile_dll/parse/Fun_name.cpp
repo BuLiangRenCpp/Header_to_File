@@ -26,12 +26,12 @@ namespace htf {
 		{
 			if (s.find("operator") != string::npos) {		// 1. 重载运算符函数名
 				if (s == "operator") 
-					throw exception::Excep_dev("Fun_name::Fun_name(const string&)", _LINE + "after" +
-						 mark_string(s) + "lack of operator-char");
+					throw excep::Excep_dev("Fun_name::Fun_name(const string&)", _LINE + "after" +
+						 mark(s) + "lack of operator-char");
 			}
 			else {		// 2. 一般函数名
 				if (!stream::usage::is_identifier(s)) 
-					throw exception::Excep_dev("Fun_name::Fun_name",  _LINE + mark_string(s) + 
+					throw excep::Excep_dev("Fun_name::Fun_name",  _LINE + mark(s) + 
 						"isn't a legal identifier, cannot to be function-name");
 			}
 		}
