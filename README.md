@@ -1,6 +1,6 @@
 ﻿# Header_to_File
 
-> Chinese version please go to "https://gitee.com/buliangrencpp/Header_to_File.git"
+> 中文版见 "https://gitee.com/buliangrencpp/Header_to_File.git"
 
 ## Introduce
 ### 1. Main function：

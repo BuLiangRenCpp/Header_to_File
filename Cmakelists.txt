@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.28)
-project(main)
+project(htf)
 
 # **************************** config **************************************
 set(CMAKE_CXX_STANDARD 17)
@@ -8,30 +8,15 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 # ****************************** path **********************************
 set(PRO ${CMAKE_CURRENT_SOURCE_DIR})        # project
 set(ROOT ${PRO})
+
+# include 
+set(INCLUDE_ROOT ${PRO}/src)
+set(SHARE_INC ${INCLUDE_ROOT}/share_dll)
+
+set(SRC_ROOT ${INCLUDE_ROOT})
+
 set(BIN ${PRO}/bin) 
-set(INCLUDE ${PRO}/include)
-set(INC 
-    ${INCLUDE}
-    ${INCLUDE}/share
-    ${INCLUDE}/stream
-    ${INCLUDE}/argument
-    ${INCLUDE}/compile
-    ${INCLUDE}/compile/lex_h
-    ${INCLUDE}/compile/parse_h)
 set(LIB ${PRO}/lib)
-
-set(CODE ${PRO}/code)
-set(SUB_DIR 
-    ${CODE}/share_dll
-    ${CODE}/stream_lib
-    ${CODE}/argument_lib
-    ${CODE}/compile_dll)
-
-set(LIB_NAME 
-    Share 
-    Stream
-    Compile
-    Args)
 
 
 # ********************************* build type *****************************************
@@ -48,20 +33,7 @@ else()
     set(CMAKE_BUILD_TYPE Release)
 endif()
 
-foreach(dir ${SUB_DIR})
-    add_subdirectory(${dir})
-endforeach()
-
-# ************************* exe *************************************
-
-set(EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/bin)
-
-aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/src SRC)
-include_directories(${INC})
-
-link_directories(${LIB})
-add_executable(htf ${SRC})
-target_link_libraries(htf ${LIB_NAME})
+add_subdirectory(${SRC_ROOT})
 
 
 
