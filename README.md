@@ -24,7 +24,7 @@ After writing the declaration statement in the C++ header file, without rewritin
 [example] The directory results are as follows: 
 > Arg.h depends on Arg_con.h and Arg_key.h, which in turn depends on header.h. Enter the command "htf Arg.h -I inlcude" and "htf" automatically handles the dependencies
 
-![alt text](img/0.png)
+![alt text](image/image.png)
 
 - General function declaration statement
 > - Support **namespace identification, custom types**
@@ -125,9 +125,9 @@ namespace A {
 
 - Support **single file, multi-file processing**
 
-![alt text](img/1.png)
+![alt text](image/htf-file.png)
 
-![alt text](img/2.png)
+![alt text](image/htf-files.png)
 
 - Support a certain degree of **code error prompt**
 > This is more left to the IDE(or compiler), and error messages in "htf" are only used when necessary
