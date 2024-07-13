@@ -14,7 +14,7 @@ static bool is_htf_args(const vector<char>& args)
     bool is_i = false, is_o = false, is_I = false, is_f = false;
     for (char c : args) {
         if (!args_judge::is_arg(c)) 
-            throw Excep_arg("args_judge.cpp::is_htf_args", mark(c) + "isn't a legal argument");
+            throw Excep_arg("args_judge.cpp::is_htf_args", "unrecognized command-line option " + mark("-" + string{c}));
 
         if (c == args_const::INPUT_ARG) 
             is_i = true;

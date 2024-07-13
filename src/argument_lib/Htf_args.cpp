@@ -81,7 +81,7 @@ namespace htf {
         Htf_args::Htf_args(const vector<Arg>& args)
             :_args{ args }
         {
-            if (args.empty()) throw Excep_arg("Htf_args::Htf_args", mark("htf") + "no input files");
+            if (args.empty()) throw Excep_arg("Htf_args::Htf_args", "no input files");
             if (is_htf_args_throw(to_chars(args))) 
                 _legalize();
         }
@@ -105,8 +105,7 @@ namespace htf {
                 if (a.empty()) break;
                 args.emplace_back(a);
             }
-            if (args.empty() && !is.eof()) throw Excep_arg("Htf_args.cpp::operator>>", 
-                mark("htf") + "error argument format");
+            if (args.empty() && !is.eof()) throw Excep_arg("Htf_args.cpp::operator>>", "error argument format");
             t = Htf_args{ args };
             return is;
         }

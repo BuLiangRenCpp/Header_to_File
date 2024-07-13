@@ -1,7 +1,3 @@
-#ifdef _WIN32
-#define LIB_EXPORT
-#endif
-
 #include "Lex.h"
 #include "usage_lex.h"
 #include "output.h"

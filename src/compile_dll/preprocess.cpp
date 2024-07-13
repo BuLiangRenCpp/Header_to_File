@@ -285,7 +285,7 @@ namespace htf {
         
         // ************************************************************************************************
 
-        vector<vector<pair<bool, Hpath>>> preprocess(const vector<Hpath>& source, vector<Hdir> include)
+        Reliance preprocess(const vector<Hpath>& source, vector<Hdir> include)
         {
             Graph v(source);
             for (const auto& t : source) {

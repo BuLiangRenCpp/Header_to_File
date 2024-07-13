@@ -78,11 +78,10 @@ namespace htf {
                 include_hdirs.emplace_back(Hdir{s});
             }
             // *********************** main ********************************
-            output::print_result("dependency processing...");
+            output::print_result("dependency processing ...");
             auto ts = htf::core::preprocess(hpaths, include_hdirs);
-            output::print_result("file outputting...");
+            output::print_result("file outputting ...");
             htf::core::compile(ts, hdir, is_force);
-            output::print_result("over");
         }
     }
 }

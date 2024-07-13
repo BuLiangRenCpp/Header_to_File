@@ -22,18 +22,35 @@ namespace htf {
     #define _LINE output::mark("line " + to_string(__LINE__)) + "-> "
 	using line_t = unsigned long long;      // 记录文件行数
 
+#ifdef _WIN32
+    const std::string PROGRAM_NAME = "htf.exe";
+#else 
+    const std::string PROGRAM_NAME = "htf";
+#endif
+
     namespace excep {};
-    namespace path_deal {};
+    namespace path_deal {
+        class Hpath;
+    };
     namespace stream {
         namespace Token_kind {}
         namespace usage {}
+    }
+    namespace pre {
+        // vector's element: first->whether is source，second->path
+        using Reliance = std::vector<std::vector<std::pair<bool, path_deal::Hpath>>>;
     }
     namespace lex {
         namespace Lexer_kind {}
         namespace usage {}
     }
     namespace parse {}
-    namespace core {}
+    // !!!!!!!! don't forget: preprocess --> namespace pre !!!!!!!!!!!!!
+    // ! should delete ...
+    namespace core {
+        // vector's element: first->whether is source，second->path
+        using Reliance = std::vector<std::vector<std::pair<bool, path_deal::Hpath>>>;
+    }
     namespace arugment {}
 }
 

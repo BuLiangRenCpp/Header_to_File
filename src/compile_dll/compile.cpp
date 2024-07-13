@@ -161,15 +161,14 @@ namespace htf {
             // ************************ print result ********************************
             if (t.write_success) print_result("success -> " + output_path);
             else {
-                print_error("failure ->" + mark(lex.hpath().str()) + 
-                    ", check if there are function declaration statement or syntax in the file");
+                print_error("failure ->" + mark(lex.hpath().str()));
                 ofs.close();
                 if (!is_already_exist) path_deal::remove_file(output_path);       // * 删除失败文件
             }
             return make_pair(lex.basic_types(), lex.containers());
         }
         
-        void compile(const vector<vector<pair<bool, Hpath>>>& reliances, const Hdir& output_dir, bool is_force)
+        void compile(const Reliance& reliances, const Hdir& output_dir, bool is_force)
         {
             for (const auto& lex : reliances) {
                 // 一个依赖关系

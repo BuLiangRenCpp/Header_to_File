@@ -11,7 +11,6 @@
 namespace htf {
     namespace core {
         // is_force: 是否提示 "是否要覆盖文件"
-        DLL_API void compile(const std::vector<std::vector<std::pair<bool, path_deal::Hpath>>>& reliances, 
-            const path_deal::Hdir& output_dir, bool is_force = false);
+        DLL_API void compile(const Reliance& reliances, const path_deal::Hdir& output_dir, bool is_force = false);
     }
 }

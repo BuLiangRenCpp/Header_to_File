@@ -28,7 +28,7 @@ namespace htf {
 			:_ch{ c } 
 		{
 			if (!is_arg(c)) 
-				throw Excep_arg("Arg_key::Arg_key", mark(c) + "isn't a legal argument");
+				throw Excep_arg("Arg_key::Arg_key", "unrecognized command-line option " + mark("-" + string{c}));
 		}
 
 		char Arg_key::ch() const

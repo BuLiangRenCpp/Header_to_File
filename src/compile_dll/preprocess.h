@@ -16,8 +16,9 @@ namespace htf {
      * htf -i x 中的 x 为 sourse，而在sourse中被include的头文件，但是不存在x中的为include
     */
     namespace core {
-        // 多文件预处理 (避免不必要的处理，如 单文件处理多次处理多文件，可能有的文件被处理多次)
-        // * 返回每个独立依赖关系 (按顺序)，同时独立关系中的每个元素 first->是否时source，second->路径
-        DLL_API std::vector<std::vector<std::pair<bool, path_deal::Hpath>>> preprocess(const std::vector<path_deal::Hpath>& source, std::vector<path_deal::Hdir> include = {});
+        // * 处理预处理指令：
+        // 多文件预处理 (避免不必要的处理，如可能有的文件被处理多次)
+        // * 1. #include: 返回每个独立依赖关系 (按顺序)，同时独立关系中的每个元素 first->是否是source，second->路径
+        DLL_API Reliance preprocess(const std::vector<path_deal::Hpath>& source, std::vector<path_deal::Hdir> include = {});
     }
 }

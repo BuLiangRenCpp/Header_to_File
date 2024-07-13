@@ -58,44 +58,44 @@ try {
 }
 catch(htf::excep::Excep_path& e)
 {
-    output::print_error(e.str());
+    output::print_error(PROGRAM_NAME + "::" + e.str());
     return 1;
 }
 catch(htf::excep::Excep_arg& e)
 {
-    output::print_error(e.str());
+    output::print_error(PROGRAM_NAME + "::" + e.str());
     return 2;
 }
 catch(htf::excep::Excep_syntax& e)
 {
-    output::print_error(e.str());
+    output::print_error(PROGRAM_NAME + "::" + e.str());
     return 3;
 }
 catch(regex_error& e)
 {
-    output::print_error(e.what());
+    output::print_error(PROGRAM_NAME + "::" + e.what());
     return 4;
 }
 catch(htf::excep::Excep_dev& e)
 {
     output::print_warn("please contact the developer");
-    output::print_error(e.str());
+    output::print_error(PROGRAM_NAME + "::" + e.str());
     return 5;
 }
 catch(htf::excep::Excep_base& e)
 {
     output::print_warn("please contact the developer");
-    output::print_error(e.all());
+    output::print_error(PROGRAM_NAME + "::" + e.all());
     return 6;
 }
 catch(string& e)
 {
     output::print_warn("please contact the developer");
-    output::print_error(e);
+    output::print_error(PROGRAM_NAME + "::" + e);
     return 7;
 }
 catch (...) {
     output::print_warn("please contact the developer");
-    output::print_error("ERROR!");
+    output::print_error(PROGRAM_NAME + "::" + "fatal error!");
     return 8;
 }

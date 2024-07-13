@@ -9,10 +9,6 @@ using namespace std;
 using namespace output;
 
 
-// --------------------------------------- Arg ------------------------------------------
-
-// -------------------- public -----------------------
-
 namespace htf {
 	using namespace excep;
 	namespace argument{
@@ -32,10 +28,13 @@ namespace htf {
 				if (c.empty()) return;
 				_key = Arg_key{ args_const::INPUT_ARG };
 			}	
-			if (args_judge::is_harg(_key.ch()) && _con.empty()) 
-				throw Excep_arg("Arg::Arg", "after" + mark(k.ch()) + "lack of argument");
+			if (args_judge::is_harg(_key.ch()) && _con.empty()) {
+				if (k.ch() == args_const::INCLUDE_ARG || k.ch() == args_const::OUTPUT_ARG) 
+					throw Excep_arg("Arg::Arg", "missing directories after" + mark("-" + string{k.ch()}));
+				else throw Excep_arg("Arg::Arg", "missing filename after" + mark("-" + string{k.ch()}));
+			}
 			if (_con.con().size() > args_judge::arg_count_max(_key.ch()))
-				throw Excep_arg("Arg::Arg", mark(k.ch()) + "have more arguments: " + _con.str());
+				throw Excep_arg("Arg::Arg", mark("-" + string{k.ch()}) + "have excessive arguments: " + mark(_con.str()));
 		}
 
 		Arg_key Arg::key() const
@@ -64,14 +63,6 @@ namespace htf {
 		{
 			return _key.empty() && !_con.empty();
 		}
-
-		// void Arg::change_darg(const Arg_key& k)
-		// {
-		// 	if (!this->is_darg()) throw Excep_dev("Arg::change_darg",  "只能修改默认参数");
-		// 	_key = k;
-		// }
-
-
 
 		istream& operator>>(istream& is, Arg& t) 
 		{

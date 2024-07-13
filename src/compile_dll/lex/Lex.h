@@ -1,9 +1,4 @@
 #pragma once
-#ifdef _WIN32
-#define LIB_EXPORT
-#endif
-
-#include "dll.h"
 #include "Lexer.h"
 #include "Hpath.h"
 #include "Token_stream.h"
@@ -23,7 +18,7 @@
 
 namespace htf {
     namespace lex {
-        class DLL_API Lex {
+        class Lex {
         public:
             Lex() = delete;
             // hpath 用来标明 is 的文件路径，用于 throw Excep_syntax

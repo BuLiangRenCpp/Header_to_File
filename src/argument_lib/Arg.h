@@ -20,9 +20,6 @@ namespace htf {
 			// 有 _con 无 _key
 			bool is_darg() const;
 
-			// // 只能用于修改默认参数的key
-			// void change_darg(const Arg_key& k);
-
 		private:
 			Arg_key _key;		// 保存参数，可为空
 			Arg_con _con;		// 参数后跟的内容，可为空
