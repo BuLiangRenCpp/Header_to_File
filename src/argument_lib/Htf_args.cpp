@@ -1,7 +1,7 @@
 #include "Htf_args.h"
+#include "Excep_arg.h"
 #include "args_const.h"
 #include "args_judge.h"
-#include "Excep_arg.h"
 #include "output.h"
 
 using namespace std;
@@ -32,7 +32,8 @@ static vector<Arg> _unite(vector<Arg> args)
     vector<Arg> temp;
     for (auto t : args) {
         auto index = _index(t.key().ch(), temp);
-        if (index == -1) temp.emplace_back(t);
+        if (index == -1)
+            temp.emplace_back(t);
         else {
             temp[index].unite(t);
         }
@@ -45,7 +46,7 @@ static void sort_args(vector<Arg>& args)
 {
     args = _unite(args);
     vector<Arg> temp;
-    int index = _index(FORCE_ARG, args);
+    int         index = _index(FORCE_ARG, args);
     if (index != -1) temp.emplace_back(args[index]);
 
     index = _index(INPUT_ARG, args);
@@ -60,55 +61,57 @@ static void sort_args(vector<Arg>& args)
     args = temp;
 }
 
-static void legal_htf_ins(vector<Arg>& args) 
+static void legal_htf_ins(vector<Arg>& args)
 {
     sort_args(args);
 }
 
 
-namespace htf {
-    using namespace excep;
-    namespace argument {
-        using namespace args_judge;
+namespace htf
+{
+using namespace excep;
+namespace argument
+{
+using namespace args_judge;
 
-        Htf_args::Htf_args()
-        {
-            Arg_key key; Arg_con con;
-            Arg arg(key, con);
-            _args.emplace_back(arg);
-        }
-
-        Htf_args::Htf_args(const vector<Arg>& args)
-            :_args{ args }
-        {
-            if (args.empty()) throw Excep_arg("Htf_args::Htf_args", "no input files");
-            if (is_htf_args_throw(to_chars(args))) 
-                _legalize();
-        }
-
-        vector<Arg> Htf_args::args() const
-        {
-            return _args;
-        }
-
-        void Htf_args::_legalize()
-        {   
-            legal_htf_ins(_args);
-        }
-
-        istream& operator>>(istream& is, Htf_args& t)
-        {
-            Arg a;
-            vector<Arg> args;
-            while (true) {
-                is >> a;
-                if (a.empty()) break;
-                args.emplace_back(a);
-            }
-            if (args.empty() && !is.eof()) throw Excep_arg("Htf_args.cpp::operator>>", "error argument format");
-            t = Htf_args{ args };
-            return is;
-        }
-    }
+Htf_args::Htf_args()
+{
+    Arg_key key;
+    Arg_con con;
+    Arg     arg(key, con);
+    _args.emplace_back(arg);
 }
 
+Htf_args::Htf_args(const vector<Arg>& args)
+    : _args{args}
+{
+    if (args.empty()) throw Excep_arg("Htf_args::Htf_args", "no input files");
+    if (is_htf_args_throw(to_chars(args)))
+        _legalize();
+}
+
+vector<Arg> Htf_args::args() const
+{
+    return _args;
+}
+
+void Htf_args::_legalize()
+{
+    legal_htf_ins(_args);
+}
+
+istream& operator>>(istream& is, Htf_args& t)
+{
+    Arg         a;
+    vector<Arg> args;
+    while (true) {
+        is >> a;
+        if (a.empty()) break;
+        args.emplace_back(a);
+    }
+    if (args.empty() && !is.eof()) throw Excep_arg("Htf_args.cpp::operator>>", "error argument format");
+    t = Htf_args{args};
+    return is;
+}
+}   // namespace argument
+}   // namespace htf

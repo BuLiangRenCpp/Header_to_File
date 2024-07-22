@@ -1,17 +1,16 @@
 cmake_minimum_required(VERSION 3.28)
-project(argument)
+    project(argument)
 
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${LIB})
+        set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${LIB})
 
-aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR} SRC)    
-include_directories(${SHARE_INC} ${CMAKE_CURRENT_SOURCE_DIR} ${INCLUDE_ROOT}/compile_dll)
+            aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR} SRC)
+                include_directories(${SHARE_INC} ${CMAKE_CURRENT_SOURCE_DIR} ${INCLUDE_ROOT} / compile_dll)
 
-set(CUR_LIB_NAME
-    Share
-    Compile
-)
+                    set(CUR_LIB_NAME
+                            Share
+                                Compile)
 
-# target
-link_directories(${LIB})
-add_library(Args STATIC ${SRC})
-target_link_libraries(Args ${CUR_LIB_NAME})
+#target
+                        link_directories(${LIB})
+                            add_library(Args STATIC ${SRC})
+                                target_link_libraries(Args ${CUR_LIB_NAME})

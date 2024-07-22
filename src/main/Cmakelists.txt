@@ -1,21 +1,17 @@
 cmake_minimum_required(VERSION 3.28)
-project(main)
+    project(main)
 
-set(EXECUTABLE_OUTPUT_PATH ${ROOT}/bin)
-set(LIB_NAME 
-    Share 
-    Stream
-    Compile
-    Args)
+        set(EXECUTABLE_OUTPUT_PATH ${ROOT} / bin)
+            set(LIB_NAME
+                    Share
+                        Stream
+                            Compile
+                                Args)
 
-aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR} SRC)
-include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR} 
-    ${SHARE_INC}
-    ${INCLUDE_ROOT}/argument_lib)
+                aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR} SRC)
+                    include_directories(
+                        ${CMAKE_CURRENT_SOURCE_DIR} ${SHARE_INC} ${INCLUDE_ROOT} / argument_lib)
 
-link_directories(${LIB})
-add_executable(htf ${SRC})
-target_link_libraries(htf ${LIB_NAME})
-
-
+                        link_directories(${LIB})
+                            add_executable(htf ${SRC})
+                                target_link_libraries(htf ${LIB_NAME})
