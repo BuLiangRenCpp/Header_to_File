@@ -1,0 +1,322 @@
+7823
+
+
+"                                   1  \
+                                    2  \
+                                    3  \
+                                    4  \
+                                    5  \
+                                    6  \
+                                    7"
+
+// This file is part of the GNU ISO C++ Library.  This library is free
+// software; you can redistribute it and/or modify it under the
+// terms of the GNU General Public License as published by the
+// Free Software Foundation; either version 3, or (at your option)
+// any later version.
+
+/*
+ *
+ * 
+ * Copyright (c) 1996
+ * Silicon Graphics Computer Systems, Inc.
+ *
+ * 
+ * in supporting documentation.  Silicon Graphics makes no
+ * representations about the suitability of this  software for any
+ */
+
+/** @file bits/stl_vector.h
+ *  This is an internal header file, included by other library headers.
+ *  Do not attempt to use it directly. @headername{vector}
+ */
+
+#ifndef _STL_VECTOR_H
+#define _STL_VECTOR_H 1
+
+#if __cplusplus >= 201103L
+#include <initializer_list>
+#endif
+#if __cplusplus >= 202002L
+# include <compare>
+#define __cpp_lib_constexpr_vector 201907L
+#endif
+
+namespace std _GLIBCXX_VISIBILITY(default)
+{
+_GLIBCXX_BEGIN_NAMESPACE_VERSION
+_GLIBCXX_BEGIN_NAMESPACE_CONTAINER
+
+      typedef typename _Base::_Tp_alloc_type		_Tp_alloc_type;
+      typedef __gnu_cxx::__alloc_traits<_Tp_alloc_type>	_Alloc_traits;
+
+    public:
+      typedef _Tp					value_type;
+      typedef typename _Base::pointer			pointer;
+      typedef typename _Alloc_traits::const_pointer	const_pointer;
+      typedef typename _Alloc_traits::reference		reference;
+      typedef typename _Alloc_traits::const_reference	const_reference;
+      typedef __gnu_cxx::__normal_iterator<pointer, vector> iterator;
+      typedef __gnu_cxx::__normal_iterator<const_pointer, vector>
+      const_iterator;
+      typedef std::reverse_iterator<const_iterator>	const_reverse_iterator;
+      typedef std::reverse_iterator<iterator>		reverse_iterator;
+
+    private:
+     /**
+       *  @brief  Swaps data with another %vector.
+       *  @param  __x  A %vector of the same element and allocator types.
+       *
+       *  This exchanges the elements between two vectors in constant time.
+       *  (Three pointers, so it should be quite fast.)
+       *  Note that the global std::swap() function is specialized such that
+       *  std::swap(v1,v2) will feed to this function.
+       *
+       *  Whether the allocators are swapped depends on the allocator traits.
+       */
+      _GLIBCXX20_CONSTEXPR
+      void
+      swap(vector& __x) _GLIBCXX_NOEXCEPT
+      {
+#if __cplusplus >= 201103L
+	__glibcxx_assert(_Alloc_traits::propagate_on_container_swap::value
+			 || _M_get_Tp_allocator() == __x._M_get_Tp_allocator());
+#endif
+	this->_M_impl._M_swap_data(__x._M_impl);
+	_Alloc_traits::_S_on_swap(_M_get_Tp_allocator(),
+				  __x._M_get_Tp_allocator());
+      }
+
+      /**
+       *  Erases all the elements.  Note that this function only erases the
+       *  elements, and that if the elements themselves are pointers, the
+       *  pointed-to memory is not touched in any way.  Managing the pointer is
+       *  the user's responsibility.
+       */
+      _GLIBCXX20_CONSTEXPR
+      void
+      clear() _GLIBCXX_NOEXCEPT
+      { _M_erase_at_end(this->_M_impl._M_start); }
+
+    protected:
+      /**
+       *  Memory expansion handler.  Uses the member allocation function to
+       *  obtain @a n bytes of memory, and then copies [first,last) into it.
+       */
+      template<typename _ForwardIterator>
+	_GLIBCXX20_CONSTEXPR
+	pointer
+	_M_allocate_and_copy(size_type __n,
+			     _ForwardIterator __first, _ForwardIterator __last)
+	{
+	  pointer __result = this->_M_allocate(__n);
+	  __try
+	    {
+	      std::__uninitialized_copy_a(__first, __last, __result,
+					  _M_get_Tp_allocator());
+	      return __result;
+	    }
+	  __catch(...)
+	    {
+	      _M_deallocate(__result, __n);
+	      __throw_exception_again;
+	    }
+	}
+
+
+      // Internal constructor functions follow.
+
+      // Called by the range constructor to implement [23.1.1]/9
+
+#if __cplusplus >= 201103L
+	      emplace_back(*__first);
+#else
+	      push_back(*__first);
+#endif
+	  } __catch(...) {
+	    clear();
+	    __throw_exception_again;
+	  }
+	}
+
+#if __cpp_deduction_guides >= 201606
+  template<typename _InputIterator, typename _ValT
+	     = typename iterator_traits<_InputIterator>::value_type,
+	   typename _Allocator = allocator<_ValT>,
+	   typename = _RequireInputIter<_InputIterator>,
+	   typename = _RequireAllocator<_Allocator>>
+    vector(_InputIterator, _InputIterator, _Allocator = _Allocator())
+      -> vector<_ValT, _Allocator>;
+#endif
+
+ 
+  /// See std::vector::swap().
+  template<typename _Tp, typename _Alloc>
+    _GLIBCXX20_CONSTEXPR
+    inline void
+    swap(vector<_Tp, _Alloc>& __x, vector<_Tp, _Alloc>& __y)
+    _GLIBCXX_NOEXCEPT_IF(noexcept(__x.swap(__y)))
+    { __x.swap(__y); }
+
+_GLIBCXX_END_NAMESPACE_CONTAINER
+
+#if __cplusplus >= 201703L
+  namespace __detail::__variant
+  {
+    template<typename> struct _Never_valueless_alt; // see <variant>
+
+    // Provide the strong exception-safety guarantee when emplacing a
+    // vector into a variant, but only if move assignment cannot throw.
+    template<typename _Tp, typename _Alloc>
+      struct _Never_valueless_alt<_GLIBCXX_STD_C::vector<_Tp, _Alloc>>
+      : std::is_nothrow_move_assignable<_GLIBCXX_STD_C::vector<_Tp, _Alloc>>
+      { };
+  }  // namespace __detail::__variant
+#endif // C++17
+
+_GLIBCXX_END_NAMESPACE_VERSION
+} // namespace std
+
+#endif /* _STL_VECTOR_H */
+
+
+#pragma once
+
+#include <iostream>
+#include <string>
+#include <vector>
+
+#include "../src/color.h"
+
+namespace htf
+{
+namespace test
+{
+
+
+char random_alnum()
+{
+    int flag = rand() % 3;      
+    switch (flag)
+    {
+    case 0:
+        return 'a' + rand() % 26;
+    case 1:
+        return 'A' + rand() % 26;
+    case 2:
+        return '0' + rand() % 10;
+    default:
+        break;
+    }
+    return ' ';
+}
+
+class TestCase
+{
+public:
+    TestCase(const std::string& n)
+        : testcase_name{n}, result{true}, passed_num{0}, failed_num{0} {}
+
+    virtual void run() = 0;
+
+public:
+    const std::string testcase_name;
+    bool              result;
+    double            passed_num;
+    double            failed_num;
+};
+
+class UnitTest
+{
+public:
+    TestCase* cur_testcase = nullptr;
+    double    passed_num   = 0.0;
+    double    failed_num   = 0.0;
+
+protected:
+    std::vector<TestCase*> _testcases = {};
+
+private:
+    UnitTest()                           = default;
+    UnitTest(const UnitTest&)            = delete;
+    UnitTest& operator=(const UnitTest&) = delete;
+    UnitTest(UnitTest&&)                 = delete;
+    UnitTest& operator=(UnitTest&&)      = delete;
+
+public:
+    static UnitTest* get_instance();
+    TestCase*        add_testcase(TestCase*);
+    void             run();
+};
+
+UnitTest* UnitTest::get_instance()
+{
+    static UnitTest instance;
+    return &instance;
+}
+
+TestCase* UnitTest::add_testcase(TestCase* testcase)
+{
+    _testcases.push_back(testcase);
+    return testcase;
+}
+
+/*********************************************************************************************/
+
+#define TESTCASE_NAME(_testcase_name) \
+    _testcase_name##_TEST
+
+#define _MYSTL_TEST(_testcase_name)                               \
+    class TESTCASE_NAME(_testcase_name) : public TestCase         \
+    {                                                             \
+    public:                                                       \
+        TESTCASE_NAME(_testcase_name)                             \
+        (const std::string& n)                                    \
+            : TestCase{n} {}                                      \
+        virtual void run();                                       \
+                                                                  \
+    private:                                                      \
+        static TestCase* const _testcase;                         \
+    };                                                            \
+                                                                  \
+    TestCase* const TESTCASE_NAME(_testcase_name)                 \
+        ::_testcase = UnitTest::get_instance()->add_testcase(     \
+            new TESTCASE_NAME(_testcase_name)(#_testcase_name));  \
+    void TESTCASE_NAME(_testcase_name)::run()
+
+
+/**************************************************************************/
+
+#define SUF_INFO \
+    " --> " << __FILE__ << ":" << __LINE__
+
+#define EXPECT_TRUE(condition)                                                        \
+    do {                                                                              \
+        if (condition) {                                                              \
+            ++(UnitTest::get_instance()->cur_testcase->passed_num);                   \
+            std::cout << COLOR(GREEN, " EXPECT_TURE passed!") << std::endl;           \
+        }                                                                             \
+        else {                                                                        \
+            UnitTest::get_instance()->cur_testcase->result = false;                   \
+            ++(UnitTest::get_instance()->cur_testcase->failed_num);                   \
+            std::cout << COLOR(RED, " EXPECT_TURE failed!") << SUF_INFO << std::endl; \
+        }                                                                             \
+    } while (0);                                                                      \
+    std::cout
+
+}   // namespace test
+}   // namespace htf
+
+}//
+
+auto b = 0b101010101010101010101u;
+auto b = 0B101101110010ULL;
+auto o = 01235;
+auto o = 0o214262ULL;
+auto o = 0O232413243ll;
+auto h = 0xdfaadfcc12324124198641827ULL
+auto h = 0Xafbafcd289372cafU
+double d = 0.546545641632
+double d = 1e-1232
+double d = 2.1315E129
+double d = .1232244

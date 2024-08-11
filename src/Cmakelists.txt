@@ -1,18 +1,3 @@
-cmake_minimum_required(VERSION 3.28)
-    project(sub)
-
-        set(SUB_DIR
-                ${SRC_ROOT} /
-            share_dll
-                ${SRC_ROOT} /
-            argument_lib
-                ${SRC_ROOT} /
-            stream_lib
-                ${SRC_ROOT} /
-            compile_dll
-                ${SRC_ROOT} /
-            main)
-
-            foreach (dir ${SUB_DIR})
-                add_subdirectory(${dir})
-                    endforeach()
+list(APPEND INC ${SRC}/main) 
+aux_source_directory(${SRC}/main APP) 
+add_executable(htf ${APP})

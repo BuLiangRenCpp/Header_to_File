@@ -1,0 +1,41 @@
+"测试行号时，literal.str()[1] = line(目前仅支持一位数)"
+"----------------------------------------------------"
+
+""
+
+"1                      1
+"
+
+"2 xxxxxxxxxxxxxxxx
+
+"
+
+"3 x\"  \'  \n  \txxxxxxxxxxxxxxx
+
+
+"
+
+"6 x\"  \'  \n  \txxxxxxxxxxxxxxx
+\n
+\n
+\n
+\n
+\n\n\n\n\n\n\n
+"
+
+"error1"  string
+"error1 end"
+
+-2392j2i
+-34jl3lf;df;
+
+0x123abcdefULL
+0b8
+0123
+0124
+.123E-1
+.12e20
+0o123ll
+0O28ULL
+
+"    i \ '   a\ " "j"

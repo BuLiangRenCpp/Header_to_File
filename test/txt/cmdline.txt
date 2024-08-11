@@ -1,0 +1,27 @@
+cmd.exe -i \--Include  --input \--output  -o \-I       1
+cmd.exe file1 -o dir -I dir1 -Idir2 -f file2      1
+cmd.exe file1 file2 --output =dir file3 --Include dir1 --Include=dir2 -f       1
+cmd.exe file1 -o dir -I       0   
+cmd.exe file1  -o \-I       1    
+cmd.exe file1 -I\-f       1
+cmd.exe file1 -fd      0
+cmd.exe -o =dir -I dir1 -dir2 -f           0
+cmd.exe file1 file2 -o dir -I dir1 dir2 -f      1
+cmd.exe -i file1 -o dir -I dir1 -Idir2 -f -ifile2      1
+cmd.exe -f file1 -odir -I dir1 dir2        1
+cmd.exe file1 file2 -fE -o dir -I dir1 dir2     1
+cmd.exe file1 file2 -fo dir -I dir1 dir2        0
+cmd.exe -?      0
+cmd.exe -Ef file1 file2 -o dir -I dir1 dir2     1
+cmd.exe file1 file2 -odir -Idir1             1
+cmd.exe file1 file2 --output = dir --Include= dir1 --Include =dir2 -f       1
+cmd.exe file1 file2         1
+cmd.exe     0
+cmd.exe file1 file2 -o          0
+cmd.exe file1 file2 --output= dir --Include dir1 --Include=dir2 -f       1
+cmd.exe --input file1 --input =file2 -odir -I dir1 dir2 -f        1
+cmd.exe --input=file1  --o dir -I dir1 dir2 --f          0
+cmd.exe -i=file1        0
+cmd.exe --input = file1         1
+cmd.exe --help      0
+cmd.exe     0

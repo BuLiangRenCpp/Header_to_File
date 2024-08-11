@@ -1,44 +1,48 @@
-cmake_minimum_required(VERSION 3.28)
+cmake_minimum_required(VERSION 3.10)
 project(htf)
 
-# **************************** config **************************************
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# ****************************** path **********************************
-set(PRO ${CMAKE_CURRENT_SOURCE_DIR})        # project
-set(ROOT ${PRO})
-
-# include 
-set(INCLUDE_ROOT ${PRO}/src)
-set(SHARE_INC ${INCLUDE_ROOT}/share_dll)
-
-set(SRC_ROOT ${INCLUDE_ROOT})
-
-set(BIN ${PRO}/bin) 
-set(LIB ${PRO}/lib)
-
-
-# ********************************* build type *****************************************
-# -->  cmake -D D=..
-# default release
-
-if (U)
-    add_compile_options(-D USER)
-endif()
-
-if(D)
+if (D)
     set(CMAKE_BUILD_TYPE Debug)
 else()
     set(CMAKE_BUILD_TYPE Release)
 endif()
 
-add_subdirectory(${SRC_ROOT})
+set(ROOT ${CMAKE_CURRENT_SOURCE_DIR})
+set(SRC ${ROOT}/src)
+set(LIB ${ROOT}/lib)
+set(BIN ${ROOT}/bin)
+set(TEST ${ROOT}/test)
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BIN})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${BIN}/static)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${BIN})
 
+set(INC 
+    ${LIB}
+    ${SRC}
+    # ${SRC}/stream 
+    ${SRC}/path
+    ${SRC}/compiler
+    ${SRC}/cmdline)
 
-# ***************************** install *********************************
-set(CMAKE_INSTALL_PREFIX ${ROOT}/htf-install)
+include_directories(${INC})
+foreach(inc ${INC})   
+    aux_source_directory(${inc} APP)
+endforeach()
 
-install(DIRECTORY ${BIN}
-    DESTINATION .)
+# user
+if (U)
+    add_compile_options("-DUSER=1")
+endif()
+
+if (TEST_BUILD)
+    add_subdirectory(${TEST})
+else()
+    add_subdirectory(${SRC})
+endif()
+
+set(CMAKE_INSTALL_PREFIX ${ROOT}/install)
+install(DIRECTORY ${BIN} DESTINATION .)

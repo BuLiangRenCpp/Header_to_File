@@ -1,8 +1,0 @@
-cmake_minimum_required(VERSION 3.28) project(share)
-
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BIN}) set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${LIB})
-
-        aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR} SRC)
-            include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-
-                add_library(Share SHARED ${SRC})
