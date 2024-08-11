@@ -71,7 +71,7 @@ std::string get_function_limits(Lex& lex)
 {
     std::string limits;
     auto        peek = lex.peek();
-    while (peek.kind != LexerKind::keyword) {
+    while (peek.kind == LexerKind::keyword) {
         if (peek.val == "noexcept" || peek.val == "throw") {
             limits += lex.get().val + get_between_brackets(lex) + " ";
         }
@@ -80,6 +80,7 @@ std::string get_function_limits(Lex& lex)
             limits += lex.get().val + " ";
         else
             break;
+        peek = lex.peek();
     }
     if (!limits.empty()) limits.pop_back();
     return limits;

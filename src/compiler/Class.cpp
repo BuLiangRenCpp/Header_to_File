@@ -75,13 +75,15 @@ namespace detail
 void get_fun_or_var(Lex& lex, std::vector<Variable>& vars, std::vector<Function>& funs)
 {
     std::string type = lex.get().val;
-    if (lex.peek().kind != LexerKind::identifier) {
+    auto peek = lex.peek();
+    if ((peek.kind != LexerKind::identifier && peek.kind != LexerKind::type) || 
+        peek.kind == LexerKind::type && !is_identifier(peek.val)) {
         lex.add_error(lex.peek(), "after" + mark(type) + "lack of idenfitier");
         lex.ignore_statement();
         return;
     }
     std::string name = lex.get().val;
-    auto        peek = lex.peek();
+    peek = lex.peek();
     // ----------- function --------------
     if (peek.val == "(") {
         std::vector<Variable> args;
@@ -140,6 +142,10 @@ Class get_class(Lex& lex)
     }
     std::string name = peek.val;
     lex.add_type(name);
+    if (lex.peek().val == ";") {
+        lex.get();
+        return Class{};
+    }
     lex.ignore_until();   // 跳过 : public X
     if (lex.peek().val != "{") {
         lex.ignore_statement();

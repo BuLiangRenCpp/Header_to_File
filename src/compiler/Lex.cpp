@@ -356,6 +356,10 @@ void Lex::deal_class(bool flag)
         _types.add(token.val);
         _ts.get();
     }
+    if (_ts.peek().val == ";") {
+        if (flag) _ts.get();
+        return;
+    }
     _ts.ignore_until();
     _ts.ignore_between_bracket();
     if (flag) _ts.ignore();
