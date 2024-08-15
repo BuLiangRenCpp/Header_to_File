@@ -23,11 +23,6 @@ PreProcess::PreProcess(const path::Path& cfile, const std::vector<path::Path>& i
     , _tmp_visited{}
 {}
 
-PreProcess::~PreProcess()
-{
-    clear();
-}
-
 // 检查 str 的第一个 非空字符 是否是 '#'
 // true: return pos
 // false: return -1
@@ -40,13 +35,12 @@ static int is_pre_ins(const string& str)
     return pos;
 }
 
-bool PreProcess::run(FS::path output_path, const FS::path& temp_dir)
+bool PreProcess::run(FS::path output_path)
 {
+    path::Path temp_dir = path::create_htf_temp_directory();
     if (_not_include.count(_source.path())) return true;
-    if (!FS::is_directory(temp_dir)) 
-        THROW_EXCEP_PATH_IF(!FS::create_directory(temp_dir), temp_dir, path::ExcepPath::ErrorCode::not_create_directory);
     if (output_path.empty())
-        output_path = temp_dir / (_source.filename(false) + path::HTF_Temp_PreProcess_File_Extension);
+        output_path = temp_dir.path() / (_source.filename(false) + path::HTF_Temp_PreProcess_File_Extension);
     // --------- 覆盖源文件 -------------
     Ofstream o(output_path);
     THROW_EXCEP_PATH_IF(!o, output_path, path::ExcepPath::ErrorCode::not_create_file);
@@ -90,17 +84,27 @@ std::string PreProcess::errors() const
     return oss.str();
 }
 
-void PreProcess::clear()
+void PreProcess::clear(bool clear_dir)
 {
-    for (auto it : _tmp_files) {
-        auto path = it.second;
-        HTF_DEV_ASSERT_MESSAGE(FS::path(path).extension().string() == path::HTF_Temp_File_Extension, 
-            "not htf temp file" << mark_path(path));
-        try {
-            FS::remove(path);
+    if (clear_dir) {
+        for (auto it : _tmp_files) {
+            auto parent = it.second.parent_path();
+            HTF_DEV_ASSERT_MESSAGE(parent.filename() == path::HTF_Temp_Directory_Name, "htf temp directory filename !=" + mark(path::HTF_Temp_Directory_Name));
+            FS::remove_all(it.second.parent_path());
+            return;
         }
-        catch (const std::exception& e) {
-            HTF_DEV_ASSERT_MESSAGE(false, "not remove htf temp file" << mark_path(path) << ": " << e.what());
+    }
+    else {
+        for (auto it : _tmp_files) {
+            auto path = it.second;
+            HTF_DEV_ASSERT_MESSAGE(FS::path(path).extension().string() == path::HTF_Temp_File_Extension, 
+                "not htf temp file" << mark_path(path));
+            try {
+                FS::remove(path);
+            }
+            catch (const std::exception& e) {
+                HTF_DEV_ASSERT_MESSAGE(false, "not remove htf temp file" << mark_path(path) << ": " << e.what());
+            }
         }
     }
 }
@@ -114,34 +118,48 @@ void PreProcess::deal_single_file(const FS::path& path)
     THROW_EXCEP_PATH1_IF(!ofs, "cannot create temp file" << ofile);
     ofs << HTF_PreProcess_File_Id << endl;
     while (true) {
-        auto   old_line = _line;
-        string str      = deal_line(ifs);
+        auto   old_line = _line;    // 用于计算处理过 续行符 之后的换行符的个数
+        string str      = deal_continuation_char(ifs);
         if (str.empty()) break;
-        // deal comment
-        auto pos = str.find('/');
-        // ------------------ 注释 -------------------------------
-        if ((pos != string::npos) && (pos < str.length())) {
-            if (str[pos + 1] == '/') {   // 行注释
-                deal_line_comment(str, pos + 1);
-            }
-            else if (str[pos + 1] == '*') {   // 块注释
-                ++pos;
-                line_t old_line = _line;   // 用于计算注释中的 \n 个数
-                int    index    = deal_block_comment(str, pos);
-                while (-1 != index) {
-                    string tmp = deal_line(ifs);
-                    if (tmp.empty()) {
-                        _errors.emplace_back(CompilerError{_cur,
-                                                         _line,
-                                                         0,
-                                                         "block comment: lack of" + mark("*/"),
-                                                         CompilerError::CompilerError::ErrorCode::bad_preprocess});
-                        return;
-                    }
-                    str += std::move(tmp);
-                    index = deal_block_comment(str, index);
+        // -------------- comment and raw string ---------------
+        string old_comment_str = str;       // 用于报错
+        auto old_comment_line = _line;
+        auto flag = deal_new_line(str);
+        while (flag != DealLineFuncRetType::is_success) {
+            ofs << str;
+            str = deal_continuation_char(ifs);
+            // -------------- error ----------------
+            if (str.empty()) {     
+                switch (flag)
+                {
+                case DealLineFuncRetType::unclose_block_comment:
+                {
+                    col_t i = static_cast<col_t>(old_comment_str.find("/*"));
+                    _errors.emplace_back(CompilerError{_cur, old_comment_line, i, "unclosed black comment"});
+                    break;
                 }
-                str += string(_line - old_line, '\n');
+                case DealLineFuncRetType::unclose_raw_string:
+                {
+                    col_t i = static_cast<col_t>(old_comment_str.find("R\""));
+                    _errors.emplace_back(CompilerError{_cur, old_comment_line, i, "lack of" + mark('"', '[') + "after raw string delimiter"});                
+                    break;
+                }
+                default:
+                    HTF_SWITCH_DEFAULT_THROW;
+                }
+                break;
+            }
+            // ------------- deal old line -------------
+            switch (flag)
+            {
+            case DealLineFuncRetType::unclose_block_comment:
+                flag = deal_old_line_block_comment(str);
+                break;
+            case DealLineFuncRetType::unclose_raw_string:
+                flag = deal_old_line_block_comment(str);
+                break;
+            default:
+                HTF_SWITCH_DEFAULT_THROW;
             }
         }
         // --------------------- 预处理指令 -----------------------
@@ -216,7 +234,7 @@ static void delete_space_suf(string& str)
         str = str.substr(0, i + 1);
 }
 
-std::string PreProcess::deal_line(Ifstream& ifs)
+std::string PreProcess::deal_continuation_char(Ifstream& ifs)
 {
     string str;
     // ! 与 138 行不同，由于初始化为空字符，所以 'ifs.eof() && str.empty()' 是有效的
@@ -247,29 +265,139 @@ std::string PreProcess::deal_line(Ifstream& ifs)
     return str;
 }
 
-void PreProcess::deal_line_comment(std::string& str, int pos)
+PreProcess::DealLineFuncRetType PreProcess::deal_new_line(std::string& str)
 {
-    str = str.substr(0, pos - 1);
-    str += "\n";
+    auto len = str.size();
+    bool block_comment_close = true;
+    bool raw_string_close = true;       // raw string 的 "" 是否闭合
+    for (int i = 0; i < len; ++i) {
+        switch (str[i])
+        {            
+        case '"': case '\'':       // "string literal" ''
+        {
+            char tar = str[i];
+            bool is_close = false;
+            for (int j = i + 1; j < len; ++j) {
+                if (j == '\\' && str[j + 1] == tar) {       // deal_line 处理后 str.back() != '\'
+                    ++j;
+                    continue;
+                } 
+                if (str[j] == tar) {
+                    i = j + 1;
+                    is_close = true;
+                    break;
+                }
+            }
+            if (is_close == false) {
+                _errors.emplace_back(CompilerError{_cur, _line, static_cast<col_t>(i), "missing terminating character" + mark(str[i], '[')});
+            }
+            break;
+        }
+        case 'R':       // R"()"
+        {
+            if (i + 1 == len) continue;
+            if (str[i + 1] == '"') {
+                bool have_lbra = false;
+                raw_string_close = false;
+                for (int j = i + 2; j < len; ++j) {
+                    if (str[j] == '"') {
+                        raw_string_close = true;
+                        i = j + 1;
+                        break;
+                    }
+                    if (str[j] == '(') {
+                        have_lbra = true;
+                    }
+                }
+                if (have_lbra == false)        // * 则忽略下一个 "
+                    _errors.emplace_back(CompilerError{_cur, _line, static_cast<col_t>(i), "lack of" + mark('(') + "in raw string delimiter"});
+                if (raw_string_close == false) return DealLineFuncRetType::unclose_raw_string;
+            }
+            break;
+        }
+        case '/':       // comment
+        {
+            if (i + 1 == len) continue;
+            // ----------- line comment -----------
+            if (str[i + 1] == '/') {
+                str = str.substr(0, i) + "\n";
+                return DealLineFuncRetType::is_success;
+            }
+            // ----------- block comment ------------
+            else if (str[i + 1] == '*') {
+                block_comment_close = false;
+                for (int j = i + 2; j < len - 1; ++j) {
+                    if (str[j] == '*' && str[j + 1] == '/') {
+                        block_comment_close = true;
+                        str = str.substr(0, i) + str.substr(j + 1);
+                        str[i++] = ' ';  // * 将注释转为一个空格
+                        len = str.size();
+                        break;
+                    }
+                }
+                if (block_comment_close == false) {
+                    str = str.substr(0, i);
+                    return DealLineFuncRetType::unclose_block_comment;
+                }
+            }
+            break;
+        }
+        default:
+            break;
+        }
+    }
+    return DealLineFuncRetType::is_success;
 }
 
-// ! 目前 BUG: "/*/" 字符串被按照 /*/ 处理 ---------------------
-// pos: the '*' pos
-// return: -1 正确
-// return: /* 中的 '*' 的下标
-int PreProcess::deal_block_comment(string& str, int pos)
+PreProcess::DealLineFuncRetType PreProcess::deal_old_line_block_comment(std::string& str)
 {
-    auto tar_pos = str.find("*/", pos + 1);
-    if (tar_pos == string::npos) return pos;
-    string suf = (tar_pos + 2 < str.length()) ? str.substr(tar_pos + 2) : "";
-    str        = str.substr(0, pos - 1) + suf;
-    pos        = str.find("/*");
-    if (pos == string::npos) {
-        pos = str.find("//");
-        if (pos != string::npos) deal_line_comment(str, pos + 1);
-        return -1;
+    auto len = str.size();
+    for (int i = 0; i < len; ++i) {
+        switch (str[i])
+        {
+        case '*':
+        {
+            if (i + 1 == len) continue;
+            if (str[i + 1] == '/') {
+                str = str.substr(i + 1);
+                str[0] = ' ';
+                return deal_new_line(str);
+            }
+            break;
+        }
+        default:
+            break;
+        }
     }
-    return deal_block_comment(str, pos + 1);
+    str = "";
+    return DealLineFuncRetType::unclose_block_comment;
+}
+
+PreProcess::DealLineFuncRetType PreProcess::deal_old_line_raw_string(std::string& str)
+{
+    auto len = str.size();
+    for (int i = 0; i < len; ++i) {
+        switch (str[i])
+        {
+        case '\\':
+        {
+            if (i + 1 == len) continue;
+            if (str[i + 1] == '"') ++i;
+            break;
+        }
+        case '"':
+        {
+            if (i + 1 == len) return DealLineFuncRetType::is_success;
+            string rear = str.substr(i + 1);
+            auto res = deal_new_line(rear);
+            str = str.substr(0, i + 1) + rear;
+            return res;
+        }
+        default:
+            break;
+        }
+    }
+    return DealLineFuncRetType::unclose_raw_string;
 }
 
 std::string PreProcess::is_include(string str, int pos)
