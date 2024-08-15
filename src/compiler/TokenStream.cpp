@@ -90,82 +90,33 @@ Token TokenStream::get()
             return get_string_literal();
         }
         //  -- encoding-prefix string_literal --
-        if (c == 'u' || c == 'U' || c == 'L') {
+        if ((c == 'u' || c == 'U' || c == 'L' || c == 'R')) {
             char c = _ifs.get();
             ++_col;
-            Token res{string{c}, TokenKind::string_literal, _line, _col};
-            if (_ifs.peek() == '\"' || _ifs.peek() == '\'') {   // [u|U|L] " "
-                res.val += get_string_literal().val;
-                return res;
-            }
-            if (_ifs.peek() == 'R') {
-                c = _ifs.get();
-                ++_col;
-                if (_ifs.peek() == '"') {
-                    res.val += get_raw_string();
-                    return res;
-                }
-                else {      // 'uR' 
-                    res.kind = TokenKind::identifier;
-                    res.val += "R" + get_identifier();
-                    if (is_keyword(res.val)) res.kind = TokenKind::keyword;
-                    return res;
-                }
+            if (_ifs.peek() == '\"') {   // [u|U|L] " "
+                return get_string_literal();
             }
             if ((c == 'u' && _ifs.peek() == '8')) {
-                c = _ifs.get();
+                _ifs.get();
                 ++_col;
-                res.val.push_back(c);
-                if (_ifs.peek() == '\"' || _ifs.peek() == '\'') {   // u8 ""
-                    res.val += get_string_literal().val;
-                    return res;
-                }
-                else if (_ifs.peek() == 'R') {
-                    c = _ifs.get();
-                    ++_col;
-                    if (_ifs.peek() == '"') {
-                        res.val += get_raw_string();
-                        return res;
-                    }
-                    else {      // 'u8R'
-                        res.kind = TokenKind::identifier;
-                        res.val += "R" + get_identifier();
-                        if (is_keyword(res.val)) res.kind = TokenKind::keyword;
-                        return res;
-                    }
+                if (_ifs.peek() == '\"') {   // u8 ""
+                    return get_string_literal();
                 }
                 else {   // u8 开头的 identifier
-                    res.val += get_identifier();
-                    res.kind = TokenKind::identifier;
+                    auto res = get_identifier();
+                    res.val  = "u8" + res.val;
                     if (is_keyword(res.val)) res.kind = TokenKind::keyword;
                     return res;
                 }
             }
-            res.val += get_identifier();   // [u|U|L] 开头的 identifier
-            res.kind = TokenKind::identifier;
+            auto res = get_identifier();   // [u|U|L] 开头的 identifier
+            res.val  = string{c} + res.val;
             if (is_keyword(res.val)) res.kind = TokenKind::keyword;
             return res;
-        }
-        if (c == 'R') {
-            c = _ifs.get();
-            ++_col;
-            Token res{"", TokenKind::string_literal, _line, _col};
-            if (_ifs.peek() == '\"') {
-                res.val = get_raw_string();
-                return res;
-            }
-            else {      // R..
-                res.val = "R" + get_identifier();
-                res.kind = TokenKind::identifier;
-                return res;
-            }
         }
         // ------- identifier or keyword --------
         if (isalpha(c) || c == '_') {   // 必须以 非数字字符开头
-            Token res{"", TokenKind::identifier, _line, _col};
-            res.val = get_identifier();
-            if (is_keyword(res.val)) res.kind = TokenKind::keyword;
-            return res;
+            return get_identifier();
         }
         // -------------- schar -----------------
         _ifs.get();
@@ -280,34 +231,6 @@ void TokenStream::ignore_statement()
 //         get();
 //     }
 // }
-
-std::string TokenStream::get_raw_string()
-{
-    auto old_col = _col;
-    char c = _ifs.get();     // "
-    ++_col;
-    // * 预处理时已经确定存在 '('
-    while (c != '(') {
-        c = _ifs.get();
-        if (_ifs.eof()) return "";
-        ++_col;
-    }
-    string res;
-    bool have_rbra = false;
-    while (true) {
-        c = _ifs.get();
-        if (_ifs.eof()) {
-            // 报错使用 R 的位置
-            _errors.emplace_back(CompilerError{_file, _line, old_col, "lack of" + mark(')') + "in raw string delimiter"});
-            return "";
-        }
-        ++_col;
-        if (c == ')') have_rbra = true;
-        else if (c == '"' && have_rbra) break;
-        if (have_rbra == false) res.push_back(c);
-    }
-    return res;
-}
 
 // 读取 . 之后的值
 string TokenStream::get_float()
@@ -523,7 +446,6 @@ Token TokenStream::get_string_literal()
         }
         // 转义字符
         if (c == '\\' && (_ifs.peek() == '\'' || _ifs.peek() == '"')) {
-            res.val.push_back('\\');
             res.val.push_back(_ifs.get());
             continue;
         }
@@ -533,13 +455,13 @@ Token TokenStream::get_string_literal()
         }
         res.val.push_back(c);
     }
-    _col += res.val.length();  
+    _col += res.val.length();
     return res;
 }
 
-std::string TokenStream::get_identifier()
+Token TokenStream::get_identifier()
 {
-    std::string res;
+    Token res{"", TokenKind::identifier, _line, _col};
     if (!is_id_ch(_ifs.peek())) return res;
     while (true) {
         char c = _ifs.get();
@@ -551,9 +473,10 @@ std::string TokenStream::get_identifier()
             _ifs.putback(c);
             break;
         }
-        res.push_back(c);
+        res.val.push_back(c);
     }
-    _col += res.length();
+    if (is_keyword(res.val)) res.kind = TokenKind::keyword;
+    _col += res.val.length();
     return res;
 }
 

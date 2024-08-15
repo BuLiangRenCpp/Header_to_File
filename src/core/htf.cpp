@@ -17,10 +17,9 @@ void htf::header_to_file(FS::path source, const FS::path& output_path,
     if (!pre.run(preprocess_file)) {
         cout_error("preprocess errors");
         std::cout << pre.errors() << std::endl;
-        pre.clear();
+        FS::remove_all(temp_dir);
         return;
     }
-    pre.clear(false);
     // ------------------- compiler -----------------------
     {
         Parse parse(preprocess_file, source);
@@ -58,14 +57,13 @@ void htf::header_to_file(const std::set<FS::path>& sources, const FS::path& outp
         if (!pre.run(preprocess_file)) {
             cout_error("preprocess errors");
             std::cout << pre.errors() << std::endl;
-            pre.clear();
+            FS::remove_all(temp_dir);
             return;
         }
         auto v = pre.visited_files();
         visited.insert(v.begin(), v.end());
         if (FS::exists(preprocess_file)) 
             tmp_files.emplace_back(std::move(preprocess_file));
-        pre.clear(false);
     }
     if (tmp_files.empty()) return;
     {

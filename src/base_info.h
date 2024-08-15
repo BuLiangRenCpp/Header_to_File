@@ -13,7 +13,7 @@ namespace htf
 
 // 版本号
 #define HTF_VERSION_MAJOR "1"
-#define HTF_VERSION_MINOR "1"
+#define HTF_VERSION_MINOR "0"
 #define HTF_VERSION_PATCH "0"
 #define HTF_VERSION HTF_VERSION_MAJOR "." HTF_VERSION_MINOR "." HTF_VERSION_PATCH
 

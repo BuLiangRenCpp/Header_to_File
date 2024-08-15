@@ -98,9 +98,6 @@ public:
     // void ignore_current_file();
 
 private:
-    // 处理 R"xx()xx"
-    // 调用这必须判断字符以 R" 开头，并且将 R 读取掉
-    std::string get_raw_string();
     // 读取 . 之后的值以及 flaot-suffix
     std::string get_float();
     // 以下只读取前缀到后缀之间的数字
@@ -121,7 +118,7 @@ private:
     // 包括 keyword
     // ! 第一个字符由调用者判断: 内部仅判断第一个字符是否是 非 id 字符
     // * 即不判断是否以 非数字字符 开头
-    std::string get_identifier();
+    Token get_identifier();
     // 调用者判断第一个字符是 dchar first，
     // 但可能返回的是 schar
     Token get_dchar();

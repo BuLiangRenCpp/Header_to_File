@@ -7,8 +7,8 @@
 // #include "stream_old_test.h"
 // #include "path_test.h"
 // #include "stream_test.h"
-#include "compiler_test.h"
-// #include "cmdline_test.h"
+#include "cmdline_test.h"
+// #include "compiler_test.h"
 
 using namespace std;
 
