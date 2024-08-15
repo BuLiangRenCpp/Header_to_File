@@ -28,8 +28,8 @@
 #include <set>
 #include <vector>
 
-#include "Path.h"
 #include "CompilerError.h"
+#include "Path.h"
 
 namespace htf
 {
@@ -46,14 +46,13 @@ public:
     // - - 指出的话应该是绝对路径，在 deal_include 时比较
     PreProcess(const path::Path& source, const std::vector<path::Path>& include_dirs = {},
                const std::set<FS::path>& not_include = {});
-    ~PreProcess();
+    // * 仅当出现 error 时将 临时目录 删除
+    ~PreProcess() = default;
 
 public:
     // - output_path: 指定输出路径 (if output_path == "": use default path
     // 注意可能会覆盖源文件)
-    // - temp_dir: 指定临时文件输出路径 (默认 current)
-    bool run(FS::path output_path = "",
-             const FS::path& temp_dir     = (FS::current_path() / path::HTF_Temp_Directory_Name));
+    bool run(FS::path output_path = "");
     // 返回已经处理过的文件
     std::set<FS::path> visited_files() const
     {
@@ -65,21 +64,19 @@ public:
     }
 
     std::string errors() const;
-    // 仅移除临时文件
-    void        clear();
+    void        clear(bool clear_dir = true);
 
 private:
-    path::Path            _source;   // 第一次初始化的文件
-    path::Path            _cur;      // 当前正在处理的文件
+    path::Path              _source;   // 第一次初始化的文件
+    path::Path              _cur;      // 当前正在处理的文件
     std::vector<path::Path> _include_dirs;
-    std::set<FS::path>  _not_include;
-    line_t                 _line;   // 当前文件所在行号
+    std::set<FS::path>      _not_include;
+    line_t                  _line;   // 当前文件所在行号
     std::vector<CompilerError> _errors;   // * 后续想法: 当错误达到指定量时才输出 (或者 run 结束)
 
 private:
     std::map<FS::path, FS::path> _tmp_files;   // file.h 对应的临时文件 file.i
-    std::queue<FS::path>
-        _tmp_tasks;   // * 从 tasks 取任务，通过 map 找到对应的 输出路径
+    std::queue<FS::path> _tmp_tasks;   // * 从 tasks 取任务，通过 map 找到对应的 输出路径
     std::map<FS::path, FS::path>
         _tmp_visited;   // * 已经处理的文件, 用于避免重复处理文件，以及删除临时文件
 
@@ -93,10 +90,18 @@ private:
     void merge_temp_file(const FS::path& ifile, Ofstream& ofs);
 
 private:
+    enum class DealLineFuncRetType
+    {
+        is_success            = 0,
+        unclose_block_comment = 1,
+        unclose_raw_string    = 2
+    };
+
+private:
     /**
      * [目前方案]:
-     * - 对于单个文件 先 deal_line，返回处理后的 string，在 deal_comment，由 run
-     * 将处理后的结果写入文件
+     * - 对于单个文件 先处理续行符，返回处理后的 string，在 deal_comment，
+     *     由 run将处理后的结果写入文件
      * - 将 #include "file.h" file.h 路径加入 _files，处理完，处理完的文件从 _files 中删除
      * - #include "file.h"  ->  #file.h
      * - 最后处理所有临时文件中的： #file.h 指令 -- 加入文件内容插入
@@ -104,12 +109,15 @@ private:
 
     // 处理 '\'
     // return: 每一行处理后的结果
-    std::string deal_line(Ifstream& ifs);
-    // pos: the second '/' index
-    void deal_line_comment(std::string& str, int pos);
-    // pos: the '*' pos
-    // return: 是否找到了 */
-    int deal_block_comment(std::string& str, int pos);
+    std::string deal_continuation_char(Ifstream& ifs);
+    // 处理一行中的:
+    // - comment
+    // - raw string:  R"()"
+    DealLineFuncRetType deal_new_line(std::string& str);
+    // 处理 deal_new_line 处理后的字符中: unclosed block comment
+    DealLineFuncRetType deal_old_line_block_comment(std::string& str);
+    // 处理 deal_new_line 处理后的字符中: unclosed raw string
+    DealLineFuncRetType deal_old_line_raw_string(std::string& str);
 
 private:
     // 判断是否是  "  or  <     (#include <..>     #include "..")

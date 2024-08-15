@@ -9,21 +9,21 @@
 namespace htf
 {
 
-#define THROW_EXCEP_BASE_IF(expr, msg) \
-    do { \
-        if ((expr)) { \
-            std::ostringstream oss;            \
-            oss << HTF_ERROR_WHERE << msg;     \
+#define THROW_EXCEP_BASE_IF(expr, msg)       \
+    do {                                     \
+        if ((expr)) {                        \
+            std::ostringstream oss;          \
+            oss << HTF_ERROR_WHERE << msg;   \
             throw htf::ExcepBase{oss.str()}; \
-        } \
-    } while(0)
-    
+        }                                    \
+    } while (0)
+
 
 class ExcepBase : public std::exception
 {
 public:
     ExcepBase() = default;
-    ExcepBase(const std::string& msg) :_msg{ "htf-error: " + msg } { }
+    ExcepBase(const std::string& msg) : _msg{"htf-error: " + msg} {}
     virtual ~ExcepBase() = default;
 
 public:

@@ -44,16 +44,20 @@ public:
     }
     void putback(const T& t)
     {
-        HTF_DEV_ASSERT_MESSAGE(!full(), "Buffer::putback(const T&): buffer is full"
-            << "\nbuffer = " << _buffer.val << "  " << _buffer.line << ":" << _buffer.col
-            << "\nnext   = " << t.val << "  " << t.line << ":" << t.col);
+        HTF_DEV_ASSERT_MESSAGE(!full(),
+                               "Buffer::putback(const T&): buffer is full"
+                                   << "\nbuffer = " << _buffer.val << "  " << _buffer.line << ":"
+                                   << _buffer.col << "\nnext   = " << t.val << "  " << t.line << ":"
+                                   << t.col);
         _buffer = t;
     }
     void push_peek(const T& t)
     {
-        HTF_DEV_ASSERT_MESSAGE(empty_peek(), "Buffer::push_peek: peek is full"
-            << "\npeek = " << _peek.val << "  " << _peek.line << ":" << _peek.col
-            << "\nnext = " << t.val << "  " << t.line << ":" << t.col);
+        HTF_DEV_ASSERT_MESSAGE(empty_peek(),
+                               "Buffer::push_peek: peek is full"
+                                   << "\npeek = " << _peek.val << "  " << _peek.line << ":"
+                                   << _peek.col << "\nnext = " << t.val << "  " << t.line << ":"
+                                   << t.col);
         _peek = t;
     }
     // 实际的缓冲区[0]是否满了，用于 putback 判断缓冲区是否满了

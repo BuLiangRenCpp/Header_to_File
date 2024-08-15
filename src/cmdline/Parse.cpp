@@ -133,7 +133,8 @@ bool Parse::parse(int argc, char* const argv[])
                 insert_look_up(option);
                 if (val.empty()) {   // 2.1.1 --option=  value
                     if (!option->has_value()) {
-                        _errors.emplace_back("no-value option" + mark("--" + opt) + "cannot use" + mark('='));
+                        _errors.emplace_back("no-value option" + mark("--" + opt) + "cannot use" +
+                                             mark('='));
                         continue;
                     }
                     set_value_after(i, argc, argv, option);
@@ -141,7 +142,8 @@ bool Parse::parse(int argc, char* const argv[])
                 else {   // 2.1.2 指定值
                     // * 多值: 应该使用 'option=v1 option=v2' or 'option v1 v2'
                     if (!option->has_value()) {
-                        _errors.emplace_back("no-value option" + mark("--" + opt) + "cannot use" + mark('='));
+                        _errors.emplace_back("no-value option" + mark("--" + opt) + "cannot use" +
+                                             mark('='));
                         continue;
                     }
                     if (!deal_spe_value(val)) continue;
@@ -190,7 +192,8 @@ bool Parse::parse(int argc, char* const argv[])
                 }
                 else {   // 3.2.2 多值、单值
                     if (val[0] == '=') {
-                        _errors.emplace_back(mark('=') + "required use option" + mark("--" + option->name()));
+                        _errors.emplace_back(mark('=') + "required use option" +
+                                             mark("--" + option->name()));
                         continue;
                     }
                     if (!deal_spe_value(val)) continue;
@@ -252,7 +255,8 @@ void Parse::set_value_after(int& i, int argc, char* const argv[], OptionBase* op
                     return;
                 }
                 if (is_short && value[0] == '=') {
-                    _errors.emplace_back(mark('=') + "required use option" + mark("--" + option->name()));
+                    _errors.emplace_back(mark('=') + "required use option" +
+                                         mark("--" + option->name()));
                     return;
                 }
                 if (deal_spe_value(value)) {
@@ -271,7 +275,8 @@ void Parse::set_value_after(int& i, int argc, char* const argv[], OptionBase* op
                 value = argv[i];
             }
             if (is_short && value[0] == '=') {
-                _errors.emplace_back( mark('=') + "required use option" + mark("--" + option->name()));
+                _errors.emplace_back(mark('=') + "required use option" +
+                                     mark("--" + option->name()));
                 return;
             }
             if (deal_spe_value(value)) {
@@ -330,7 +335,7 @@ void Parse::deal_noval_together(const std::string& arg)
         if (option == nullptr) return;
         if (option->has_value()) {
             _errors.emplace_back("valuable option" + mark("-" + std::string{arg[j]}) +
-                "shoule to replace" + mark(arg));
+                                 "shoule to replace" + mark(arg));
             continue;
         }
         insert_look_up(option, arg[j]);
@@ -362,7 +367,8 @@ OptionBase* Parse::get_option(const std::string& name)
 OptionBase* Parse::get_option(char short_name)
 {
     if (!_options.exist(short_name)) {
-        _errors.emplace_back("unrecognized command-line short option" + mark("-" + std::string{short_name}));
+        _errors.emplace_back("unrecognized command-line short option" +
+                             mark("-" + std::string{short_name}));
         return nullptr;
     }
     return _options.get_option(short_name);

@@ -19,14 +19,15 @@ constexpr char Match_One_Char = '?';
 
 inline bool is_regex_path_str(const std::string& s)
 {
-    return s.find(Match_Any_Char) != std::string::npos || s.find(Match_One_Char) != std::string::npos;
+    return s.find(Match_Any_Char) != std::string::npos ||
+           s.find(Match_One_Char) != std::string::npos;
 }
 
 bool is_match_path(const FS::path& path, std::string pattern);
 // 返回通配符匹配的所有路径  (绝对路径)
 // 路径必须存在
 // * 默认不匹配目录
-// 只匹配 目录 或者 文件路径 
+// 只匹配 目录 或者 文件路径
 std::set<std::string> path_regex(std::string pattern, bool is_dir = false);
 
 }   // namespace path

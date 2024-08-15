@@ -3,25 +3,21 @@
 
 #include <unordered_set>
 
-const std::unordered_set<std::string> Header_Extensions{ ".h", ".hpp", ".h++", ".h++" };
+const std::unordered_set<std::string> Header_Extensions{".h", ".hpp", ".h++", ".h++"};
 
 namespace htf
 {
 namespace path
 {
 
-const std::string HTF_Temp_Directory_Name = "header_to_file-temp-BLR";;
-const std::string HTF_Temp_File_Extension = ".htf_temp";
+const std::string HTF_Temp_Directory_Name            = "header_to_file-temp-BLR";
+const std::string HTF_Temp_File_Extension            = ".htf_temp";
 const std::string HTF_Temp_PreProcess_File_Extension = ".i_htf";
 
-Path::Path()
-	: _path{ FS::current_path() }
-{
+Path::Path() : _path{FS::current_path()}
+{}
 
-}
-
-Path::Path(const FS::path& path)
-	: _path{ FS::current_path() / path  }
+Path::Path(const FS::path& path) : _path{FS::current_path() / path}
 {
     THROW_EXCEP_PATH_IF(!FS::exists(_path), _path, ExcepPath::ErrorCode::not_exist);
     _path = _path.lexically_normal();
@@ -34,7 +30,7 @@ bool Path::is_cpp_header() const
 
 bool Path::is_htf_temp_file() const
 {
-    return extension() == HTF_Temp_File_Extension; 
+    return extension() == HTF_Temp_File_Extension;
 }
 
 std::string Path::filename(bool have_extension) const
@@ -69,16 +65,17 @@ std::ostream& operator<<(std::ostream& os, const Path& path)
 Path create_htf_temp_directory(const Path& dir)
 {
     auto tmp = dir.path() / HTF_Temp_Directory_Name;
-    if (!FS::exists(tmp)) 
-        THROW_EXCEP_PATH_IF(!FS::create_directory(tmp), tmp, ExcepPath::ErrorCode::not_create_directory);
+    if (!FS::exists(tmp))
+        THROW_EXCEP_PATH_IF(
+            !FS::create_directory(tmp), tmp, ExcepPath::ErrorCode::not_create_directory);
     return tmp;
 }
 
 Path create_htf_temp_file(const Path& dir)
 {
-    static size_t num = 0;
-    std::string filename = "header_to_file";
-    auto res = dir.path() / (filename + std::to_string(num) + HTF_Temp_File_Extension);
+    static size_t num      = 0;
+    std::string   filename = "header_to_file";
+    auto          res = dir.path() / (filename + std::to_string(num) + HTF_Temp_File_Extension);
     while (FS::exists(res)) {
         ++num;
         res = dir.path() / (filename + std::to_string(num) + HTF_Temp_File_Extension);

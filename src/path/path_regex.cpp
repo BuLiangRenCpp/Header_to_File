@@ -80,7 +80,8 @@ static std::pair<FS::path, std::string> pattern_split(const std::string& pattern
     std::string sub = (separator_index == std::string::npos)   // 丢弃分隔符
                           ? pattern.substr(parent_str.size())
                           : pattern.substr(parent_str.size() + 1);
-    THROW_EXCEP_PATH_IF(!FS::is_directory(parent), parent, ExcepPath::ErrorCode::not_exist_directory);
+    THROW_EXCEP_PATH_IF(
+        !FS::is_directory(parent), parent, ExcepPath::ErrorCode::not_exist_directory);
     return std::make_pair(FS::canonical(parent), sub);
 }
 
@@ -118,7 +119,8 @@ std::set<std::string> path_regex(std::string pattern, bool is_dir)
             res.emplace(std::move(p.string()));
         }
     }
-    // for (auto it : res) std::cerr << "--------------------------- path_regex: " << it << std::endl;
+    // for (auto it : res) std::cerr << "--------------------------- path_regex: " << it <<
+    // std::endl;
     return res;
 }
 

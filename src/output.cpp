@@ -12,7 +12,7 @@ namespace htf
 std::string mark(char str, char c)
 {
     std::ostringstream oss;
-    char end = c;
+    char               end = c;
     if (is_lbracket(c)) end = ret_rbracket(c);
     oss << " " << c << str << end << " ";
     return oss.str();
@@ -21,7 +21,7 @@ std::string mark(char str, char c)
 std::string mark(const std::string& str, char c)
 {
     std::ostringstream oss;
-    char end = c;
+    char               end = c;
     if (is_lbracket(c)) end = ret_rbracket(c);
     oss << " " << c << str << end << " ";
     return oss.str();

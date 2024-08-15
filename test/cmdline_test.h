@@ -214,7 +214,7 @@ using namespace cmdline;
 TEST(htf_cmdline_TEST)
 {
     const int argc = 7;
-    char* argv[argc] = { "", "D:/code/git/Header_to_File/src/cmdline/Option.h", "-I", "../../src", "-o", ".", "-f" };
+    char* argv[argc] = { "", "D:/code/git/Header_to_File/src/cmdline/Option.h", "-I", "./../src", "-o", "./txt", "-f" };
     htf_cmdline_parse(argc, argv);
 }
 

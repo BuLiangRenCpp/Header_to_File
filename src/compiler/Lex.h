@@ -64,13 +64,13 @@ public:
     void add_error(const Lexer& where, const std::string& what);
 
 private:
-    TokenStream              _ts;
-    bool                     _eof     = true;
-    FS::path                 _file    = "";   // 当前正在处理的源文件
-    std::set<FS::path>    _sources = {};
-    Buffer<Lexer>            _buffer;
+    TokenStream                _ts;
+    bool                       _eof     = true;
+    FS::path                   _file    = "";   // 当前正在处理的源文件
+    std::set<FS::path>         _sources = {};
+    Buffer<Lexer>              _buffer;
     std::vector<CompilerError> _errors;
-    TypeTable                _types;
+    TypeTable                  _types;
 
 private:
     Buffer<Lexer> _buffer_tmp;

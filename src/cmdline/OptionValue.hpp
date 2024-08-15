@@ -42,7 +42,7 @@ public:
         }
         return (oss.str().empty()) ? "" : oss.str().substr(1);
     }
-    
+
     void set_value(const value_type& value)
     {
         _val.clear();
@@ -63,10 +63,7 @@ public:
         return res;
     }
 
-    void set_value(const std::vector<value_type>& values)
-    {
-        _val = values;
-    }
+    void set_value(const std::vector<value_type>& values) { _val = values; }
 
     // 单值：覆盖
     // 多值：push_back

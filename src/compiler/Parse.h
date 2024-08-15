@@ -40,9 +40,9 @@ private:
     void deal_function(Ofstream& ofs);
 
 private:
-    std::vector<path::Path> _tmp_files;
-    Lex                      _lex;
-    std::set<FS::path>    _sources;
+    std::vector<path::Path>    _tmp_files;
+    Lex                        _lex;
+    std::set<FS::path>         _sources;
     std::vector<CompilerError> _errors;
 };
 

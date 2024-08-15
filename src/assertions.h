@@ -2,7 +2,7 @@
 
 /**
  * * [规范]：
- * *    - assertion: 仅用于 dev 
+ * *    - assertion: 仅用于 dev
  * *    - ExcepBase: 用于 user
  * *    - debug: 仅 debug 时有效
  * 此文件包含了一些断言：
@@ -49,5 +49,10 @@ namespace htf
             HTF_FAILED_MESSAGE(_DEV_PRE_INFO << ": " << msg); \
         }                                                     \
     } while (0)
+
+// 用于 switch default 处，避免有时候因为忘记更新 case 导致错误
+// * 仅当 defaut 一定不使用是使用
+#define HTF_SWITCH_DEFAULT_THROW \
+    HTF_DEV_ASSERT_MESSAGE(false, "failure to update the case value in time")
 
 }   // namespace htf

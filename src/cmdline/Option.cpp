@@ -12,7 +12,7 @@ Option::~Option()
 
 void Option::add(OptionBase* option)
 {
-    THROW_EXCEP_CMDLINE_IF(option == nullptr, "cannot add nullptr"); 
+    THROW_EXCEP_CMDLINE_IF(option == nullptr, "cannot add nullptr");
     _options[option->name()] = option;
     if (option->is_must()) _must_options.emplace_back(option->short_name());
 }
@@ -21,8 +21,8 @@ void Option::add(const std::string& name, char short_name, const std::string& de
                  bool is_must)
 {
     THROW_EXCEP_CMDLINE_IF(_options.count(name), "multiple definition" << mark(name));
-    THROW_EXCEP_CMDLINE_IF(_short_to_name.count(short_name), 
-        "multiple definition short option" << mark(short_name));
+    THROW_EXCEP_CMDLINE_IF(_short_to_name.count(short_name),
+                           "multiple definition short option" << mark(short_name));
     _options[name] = new OptionWithoutVal(name, short_name, description, is_must);
     if (short_name != OptionBase::no_short_name) _short_to_name[short_name] = name;
     _option_names_order.emplace_back(name);

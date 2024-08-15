@@ -1,6 +1,6 @@
 #include "Class.h"
-#include "usage.h"
 #include "output.h"
+#include "usage.h"
 
 namespace htf
 {
@@ -35,11 +35,12 @@ std::string Class::str() const
 }
 
 
-static int find_similar_type(const std::string& type, const std::vector<Variable>& args, std::set<int>& visited)
+static int find_similar_type(const std::string& type, const std::vector<Variable>& args,
+                             std::set<int>& visited)
 {
-    int i = 0;
+    int  i    = 0;
     auto size = args.size();
-    for (; i < size; ++i) {     // 需要从前往后遍历，即默认先出现的先匹配
+    for (; i < size; ++i) {   // 需要从前往后遍历，即默认先出现的先匹配
         if (!visited.count(i) && detail::is_similar_type(type, args[i].type)) {
             visited.emplace(i);
             break;
@@ -56,15 +57,15 @@ std::string Class::constructor_str(int index) const
     bool is_default = f.args.empty();
     auto size       = _vars.size();
     if (size > 0) oss << "\n\t: ";
-    std::set<int> visited;  // 已经使用过 用来填充参数 的下标不再使用
+    std::set<int> visited;   // 已经使用过 用来填充参数 的下标不再使用
     for (int i = 0; i < size; ++i) {
         if (is_default)
             oss << _vars[i].name << "{ " << _vars[i].val << " }";
         else {
-            int tmp = find_similar_type(_vars[i].type, f.args, visited);
-            std::string val = "";    // 填充参数列表}
+            int         tmp = find_similar_type(_vars[i].type, f.args, visited);
+            std::string val = "";   // 填充参数列表}
             if (tmp != -1) val = f.args[tmp].name;
-            oss << _vars[i].name << "{ " << val << " }"; 
+            oss << _vars[i].name << "{ " << val << " }";
         }
         if (i < size - 1) oss << ", ";
     }
@@ -94,15 +95,15 @@ namespace detail
 void get_fun_or_var(Lex& lex, std::vector<Variable>& vars, std::vector<Function>& funs)
 {
     std::string type = lex.get().val;
-    auto peek = lex.peek();
-    if ((peek.kind != LexerKind::identifier && peek.kind != LexerKind::type) || 
+    auto        peek = lex.peek();
+    if ((peek.kind != LexerKind::identifier && peek.kind != LexerKind::type) ||
         peek.kind == LexerKind::type && !is_identifier(peek.val)) {
         lex.add_error(lex.peek(), "after" + mark(type) + "lack of idenfitier");
         lex.ignore_statement();
         return;
     }
     std::string name = lex.get().val;
-    peek = lex.peek();
+    peek             = lex.peek();
     // ----------- function --------------
     if (peek.val == "(") {
         std::vector<Variable> args;

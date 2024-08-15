@@ -2,9 +2,9 @@
 
 // 输出提示信息：对信息添加颜色、格式等 (用于用户)
 
-#include <iostream>
 #include "usage_base.h"
 #include "using.h"
+#include <iostream>
 
 namespace htf
 {
@@ -16,7 +16,7 @@ std::string mark(const std::string& str, char c = '\'');
 inline std::string mark_path(const FS::path& path)
 {
     std::ostringstream oss;
-    oss << " [ " << path.string() <<" ] ";
+    oss << " [ " << path.string() << " ] ";
     return oss.str();
 }
 

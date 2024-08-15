@@ -1,7 +1,7 @@
 #include "Parse.h"
 #include "Class.h"
-#include "usage.h"
 #include "ExcepPath.h"
+#include "usage.h"
 
 using namespace std;
 
@@ -34,13 +34,15 @@ void Parse::run1(FS::path output_path, bool is_force)
 
 void Parse::run(const path::Path& output_dir, bool is_force)
 {
-    THROW_EXCEP_PATH_IF(!output_dir.is_directory(), output_dir.path(), path::ExcepPath::ErrorCode::not_exist_directory);
+    THROW_EXCEP_PATH_IF(!output_dir.is_directory(),
+                        output_dir.path(),
+                        path::ExcepPath::ErrorCode::not_exist_directory);
     for (auto it : _tmp_files) {
         _lex.open(it, _sources);
         _lex.peek();   // 避免没有读取 lexer 时，当前文件是初始化的文件
         while (!_lex.eof()) {
             path::Path cur{_lex.file()};
-            FS::path ofile = output_dir.path() / (cur.filename(false) + ".cpp");
+            FS::path   ofile = output_dir.path() / (cur.filename(false) + ".cpp");
             if (FS::exists(ofile) && is_force == false) {
                 _lex.ignore_current_file();
                 cout_warn("file already exist" + mark_path(ofile));
@@ -94,9 +96,9 @@ void Parse::write_single_file(const FS::path& ofile)
         else if (lexer.val == "}") {
             if (stk.empty()) {
                 _errors.emplace_back(CompilerError{_lex.file(),
-                                                 lexer.line,
-                                                 lexer.col,
-                                                 "before" + mark('}') + "lack of" + mark('{')});
+                                                   lexer.line,
+                                                   lexer.col,
+                                                   "before" + mark('}') + "lack of" + mark('{')});
                 continue;
             }
             string name = stk.top();

@@ -1,7 +1,7 @@
 #include "TokenStream.h"
 
-#include "assertions.h"
 #include "ExcepPath.h"
+#include "assertions.h"
 #include "usage.h"
 
 using namespace std;
@@ -10,7 +10,7 @@ namespace htf
 {
 
 TokenStream::TokenStream(const path::Path& tmp_file)
-    : _ifs{ tmp_file.path() }, _eof{ false }, _file{}, _line{1}, _col{0}, _errors{}, _stk{}
+    : _ifs{tmp_file.path()}, _eof{false}, _file{}, _line{1}, _col{0}, _errors{}, _stk{}
 {
     HTF_DEV_ASSERT_MESSAGE(_ifs.good(), "TokenStream::TokenStream(.): bad ifstream");
     string str;
@@ -29,7 +29,8 @@ void TokenStream::open(const path::Path& tmp_file)
 {
     _ifs.close();
     _ifs.open(tmp_file.path());
-    THROW_EXCEP_PATH_IF(!_ifs.is_open(), tmp_file.path(), path::ExcepPath::ErrorCode::not_open_file);
+    THROW_EXCEP_PATH_IF(
+        !_ifs.is_open(), tmp_file.path(), path::ExcepPath::ErrorCode::not_open_file);
     string str;
     getline(_ifs, str);
     HTF_DEV_ASSERT_MESSAGE(str == HTF_PreProcess_File_Id,
@@ -41,11 +42,10 @@ void TokenStream::open(const path::Path& tmp_file)
     while (!_stk.empty()) _stk.pop();
     getline(_ifs, str);
     HTF_DEV_ASSERT_MESSAGE(str.length() > 2 && str.substr(0, 2) == "##",
-                           "TokenStream::open(.): htf temp file: line 2 must be"
-                               << mark("##path"));
+                           "TokenStream::open(.): htf temp file: line 2 must be" << mark("##path"));
     _file = str.substr(2);
-    HTF_DEV_ASSERT_MESSAGE(FS::exists(_file), 
-        "TokenStream::TokenStream(..): source must be exist" + mark_path(_file));
+    HTF_DEV_ASSERT_MESSAGE(FS::exists(_file),
+                           "TokenStream::TokenStream(..): source must be exist" + mark_path(_file));
 }
 
 Token TokenStream::get()
@@ -90,33 +90,82 @@ Token TokenStream::get()
             return get_string_literal();
         }
         //  -- encoding-prefix string_literal --
-        if ((c == 'u' || c == 'U' || c == 'L' || c == 'R')) {
+        if (c == 'u' || c == 'U' || c == 'L') {
             char c = _ifs.get();
             ++_col;
-            if (_ifs.peek() == '\"') {   // [u|U|L] " "
-                return get_string_literal();
+            Token res{string{c}, TokenKind::string_literal, _line, _col};
+            if (_ifs.peek() == '\"' || _ifs.peek() == '\'') {   // [u|U|L] " "
+                res.val += get_string_literal().val;
+                return res;
             }
-            if ((c == 'u' && _ifs.peek() == '8')) {
-                _ifs.get();
+            if (_ifs.peek() == 'R') {
+                c = _ifs.get();
                 ++_col;
-                if (_ifs.peek() == '\"') {   // u8 ""
-                    return get_string_literal();
+                if (_ifs.peek() == '"') {
+                    res.val += get_raw_string();
+                    return res;
                 }
-                else {   // u8 开头的 identifier
-                    auto res = get_identifier();
-                    res.val  = "u8" + res.val;
+                else {   // 'uR'
+                    res.kind = TokenKind::identifier;
+                    res.val += "R" + get_identifier();
                     if (is_keyword(res.val)) res.kind = TokenKind::keyword;
                     return res;
                 }
             }
-            auto res = get_identifier();   // [u|U|L] 开头的 identifier
-            res.val  = string{c} + res.val;
+            if ((c == 'u' && _ifs.peek() == '8')) {
+                c = _ifs.get();
+                ++_col;
+                res.val.push_back(c);
+                if (_ifs.peek() == '\"' || _ifs.peek() == '\'') {   // u8 ""
+                    res.val += get_string_literal().val;
+                    return res;
+                }
+                else if (_ifs.peek() == 'R') {
+                    c = _ifs.get();
+                    ++_col;
+                    if (_ifs.peek() == '"') {
+                        res.val += get_raw_string();
+                        return res;
+                    }
+                    else {   // 'u8R'
+                        res.kind = TokenKind::identifier;
+                        res.val += "R" + get_identifier();
+                        if (is_keyword(res.val)) res.kind = TokenKind::keyword;
+                        return res;
+                    }
+                }
+                else {   // u8 开头的 identifier
+                    res.val += get_identifier();
+                    res.kind = TokenKind::identifier;
+                    if (is_keyword(res.val)) res.kind = TokenKind::keyword;
+                    return res;
+                }
+            }
+            res.val += get_identifier();   // [u|U|L] 开头的 identifier
+            res.kind = TokenKind::identifier;
             if (is_keyword(res.val)) res.kind = TokenKind::keyword;
             return res;
         }
+        if (c == 'R') {
+            c = _ifs.get();
+            ++_col;
+            Token res{"", TokenKind::string_literal, _line, _col};
+            if (_ifs.peek() == '\"') {
+                res.val = get_raw_string();
+                return res;
+            }
+            else {   // R..
+                res.val  = "R" + get_identifier();
+                res.kind = TokenKind::identifier;
+                return res;
+            }
+        }
         // ------- identifier or keyword --------
         if (isalpha(c) || c == '_') {   // 必须以 非数字字符开头
-            return get_identifier();
+            Token res{"", TokenKind::identifier, _line, _col};
+            res.val = get_identifier();
+            if (is_keyword(res.val)) res.kind = TokenKind::keyword;
+            return res;
         }
         // -------------- schar -----------------
         _ifs.get();
@@ -152,8 +201,9 @@ void TokenStream::deal_pre()
         _ifs.get();
     }
     if (s == "end") {
-        HTF_DEV_ASSERT_MESSAGE(
-            !_stk.empty(), "TokenStream::deal_pre(): preprocess file have too much" << mark("#end") << mark_path(_file));
+        HTF_DEV_ASSERT_MESSAGE(!_stk.empty(),
+                               "TokenStream::deal_pre(): preprocess file have too much"
+                                   << mark("#end") << mark_path(_file));
         auto top = _stk.top();
         _file    = top.file;
         _line    = top.line;
@@ -232,6 +282,37 @@ void TokenStream::ignore_statement()
 //     }
 // }
 
+std::string TokenStream::get_raw_string()
+{
+    auto old_col = _col;
+    char c       = _ifs.get();   // "
+    ++_col;
+    // * 预处理时已经确定存在 '('
+    while (c != '(') {
+        c = _ifs.get();
+        if (_ifs.eof()) return "";
+        ++_col;
+    }
+    string res;
+    bool   have_rbra = false;
+    while (true) {
+        c = _ifs.get();
+        if (_ifs.eof()) {
+            // 报错使用 R 的位置
+            _errors.emplace_back(CompilerError{
+                _file, _line, old_col, "lack of" + mark(')') + "in raw string delimiter"});
+            return "";
+        }
+        ++_col;
+        if (c == ')')
+            have_rbra = true;
+        else if (c == '"' && have_rbra)
+            break;
+        if (have_rbra == false) res.push_back(c);
+    }
+    return res;
+}
+
 // 读取 . 之后的值
 string TokenStream::get_float()
 {
@@ -245,8 +326,11 @@ string TokenStream::get_float()
             res += get_decimal();
         }
         else {
-            _errors.emplace_back(CompilerError{
-                _file, _line, _col, "bad float number" + mark(res), CompilerError::ErrorCode::bad_token});
+            _errors.emplace_back(CompilerError{_file,
+                                               _line,
+                                               _col,
+                                               "bad float number" + mark(res),
+                                               CompilerError::ErrorCode::bad_token});
         }
     }
     // float-suffix
@@ -292,8 +376,11 @@ std::string TokenStream::get_binary()
         num.push_back(c);
     }
     if (res == false)
-        _errors.emplace_back(CompilerError{
-            _file, _line, _col, "bad binary number" + mark(num), CompilerError::ErrorCode::bad_token});
+        _errors.emplace_back(CompilerError{_file,
+                                           _line,
+                                           _col,
+                                           "bad binary number" + mark(num),
+                                           CompilerError::ErrorCode::bad_token});
     return num;
 }
 
@@ -309,8 +396,11 @@ std::string TokenStream::get_octal()
         }
         if (!isdigit(c)) {
             if (res == false && c != '.') {
-                _errors.emplace_back(CompilerError{
-                    _file, _line, _col, "bad octal number" + mark(num), CompilerError::ErrorCode::bad_token});
+                _errors.emplace_back(CompilerError{_file,
+                                                   _line,
+                                                   _col,
+                                                   "bad octal number" + mark(num),
+                                                   CompilerError::ErrorCode::bad_token});
             }
             _ifs.putback(c);
             break;
@@ -446,6 +536,7 @@ Token TokenStream::get_string_literal()
         }
         // 转义字符
         if (c == '\\' && (_ifs.peek() == '\'' || _ifs.peek() == '"')) {
+            res.val.push_back('\\');
             res.val.push_back(_ifs.get());
             continue;
         }
@@ -459,9 +550,9 @@ Token TokenStream::get_string_literal()
     return res;
 }
 
-Token TokenStream::get_identifier()
+std::string TokenStream::get_identifier()
 {
-    Token res{"", TokenKind::identifier, _line, _col};
+    std::string res;
     if (!is_id_ch(_ifs.peek())) return res;
     while (true) {
         char c = _ifs.get();
@@ -473,10 +564,9 @@ Token TokenStream::get_identifier()
             _ifs.putback(c);
             break;
         }
-        res.val.push_back(c);
+        res.push_back(c);
     }
-    if (is_keyword(res.val)) res.kind = TokenKind::keyword;
-    _col += res.val.length();
+    _col += res.length();
     return res;
 }
 

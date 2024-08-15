@@ -15,15 +15,18 @@ static void preprocess(const std::string& source, std::string output_path,
         inl.emplace_back(it);
     }
     PreProcess pre(FS::path{source}, inl);
-    FS::path out = output_path;
-    if (out.empty()) out = FS::current_path() /  (Path{source}.filename(false) + HTF_Temp_PreProcess_File_Extension);
-    auto temp_dir = path::create_htf_temp_directory().path();
-    if (!pre.run(out, temp_dir)) {
+    FS::path   out = output_path;
+    if (out.empty())
+        out = FS::current_path() /
+              (Path{source}.filename(false) + HTF_Temp_PreProcess_File_Extension);
+    out = out.lexically_normal();
+    if (!pre.run(out)) {
         cout_error("preprocess errors");
         std::cout << pre.errors() << std::endl;
     }
-    else cout_log("output:" + mark_path(out));
-    FS::remove_all(temp_dir);
+    else
+        cout_log("output:" + mark_path(out));
+    pre.clear();
 }
 
 static std::set<FS::path> legal_input_paths(const std::vector<std::string>& paths)
@@ -32,7 +35,7 @@ static std::set<FS::path> legal_input_paths(const std::vector<std::string>& path
     for (auto it : paths) {
         auto tmp = path::path_regex(it);
         for (auto t : tmp) {
-            res.emplace(FS::canonical(t));      // ! 无语：必须处理成绝对路径
+            res.emplace(FS::canonical(t));   // ! 无语：必须处理成绝对路径
         }
     }
     return res;
@@ -48,8 +51,8 @@ static std::set<FS::path> legal_include_paths(const std::vector<std::string>& pa
     return res;
 }
 
-static void compiler1(FS::path source, FS::path output_path,
-                      const std::vector<Path>& include_dirs, bool is_force)
+static void compiler1(FS::path source, FS::path output_path, const std::vector<Path>& include_dirs,
+                      bool is_force)
 {
     if (output_path.empty()) output_path = FS::current_path();
     source = FS::canonical(FS::current_path() / source);
@@ -59,16 +62,19 @@ static void compiler1(FS::path source, FS::path output_path,
 static void compiler(const std::vector<std::string>& sources, FS::path output_path,
                      const std::vector<std::string>& include_dirs, bool is_force)
 {
-    auto             inl = legal_include_paths(include_dirs);
+    auto              inl = legal_include_paths(include_dirs);
     std::vector<Path> dirs;
     for (auto it : inl) dirs.emplace_back(it);
+    output_path = output_path.lexically_normal();
     if (sources.size() == 1 && !is_regex_path_str(sources[0]))
         compiler1(sources[0], output_path, dirs, is_force);
     else {
         auto input = legal_input_paths(sources);
         if (output_path.empty()) output_path = FS::current_path();
-        THROW_EXCEP_CMDLINE_IF(!FS::is_directory(output_path), 
-            "Inputting much files requires to use output directory: it's not directory" << mark_path(output_path));
+        THROW_EXCEP_CMDLINE_IF(
+            !FS::is_directory(output_path),
+            "Inputting much files requires to use output directory: it's not directory"
+                << mark_path(output_path));
         header_to_file(input, output_path, dirs, is_force);
     }
 }
@@ -112,7 +118,9 @@ void htf::cmdline::htf_cmdline_parse(int argc, char* argv[])
         // ------------ preprocess ---------------
         else if (parse.exist('E')) {
             auto input = parse.get_values('i');
-            THROW_EXCEP_CMDLINE_IF(input.size() > 1, "-E:" << "option" << mark("--input", '[') << "have too much values");
+            THROW_EXCEP_CMDLINE_IF(input.size() > 1,
+                                   mark("-E", '[') << ": option" << mark("--input", '[')
+                                                   << "have too much values");
             preprocess(input[0], parse.get_value('o'), parse.get_values('I'));
         }
         // ----------- compilier ----------------

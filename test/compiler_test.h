@@ -29,49 +29,53 @@ namespace compiler_test
 //     pre.clear();
 // }
 
-// TEST(TokenStream_test)
-// {
-//     std::string path = R"(D:\code\git\Header_to_File\test\txt\pre.i)";
-//     std::string opath = R"(D:\code\git\Header_to_File\test\txt\ts.out)";
-//     std::ofstream ofs(opath);
-//     if (!ofs) throw;
-//     ofs << "[" << path << "]" << std::endl;
-//     TokenStream ts(path);
-//     EXPECT_EQ(path, ts.file());
-//     while (true) {
-//         auto token = ts.get();
-//         if (token.empty()) break;
-//         if (path != ts.file()) {
-//             path = ts.file();
-//             ofs << "\n[" << path << "]" << std::endl;
-//         }
-//         ofs << "#" << token.line << ":" << token.col << ": ";
-//         switch (token.kind) {
-//         case TokenKind::constant:
-//             ofs << "constant: ";
-//             break;
-//         case TokenKind::string_literal:
-//             ofs << "string_literal: ";
-//             break;
-//         case TokenKind::keyword:
-//             ofs << "keyword: ";
-//             break;
-//         case TokenKind::identifier:
-//             ofs << "identifier: ";
-//             break;
-//         case TokenKind::dchar:
-//             ofs << "dchar: ";
-//             break;
-//         case TokenKind::schar:
-//             ofs << "schar: ";
-//             break;
-//         default:
-//             throw;
-//         }
-//         ofs << token.val << "\n";
-//     }
-//     std::cout << ts.errors() << std::endl;
-// }
+TEST(TokenStream_test)
+{
+    FS::path f = R"(D:\code\git\Header_to_File\test\temp\pre.h)";
+    FS::path path = R"(D:\code\git\Header_to_File\test\temp\ts.in)";
+    PreProcess pre(f);
+    if (pre.run(path)) std::cout << pre.errors() << std::endl;
+    pre.clear();
+    FS::path opath = R"(D:\code\git\Header_to_File\test\temp\ts.out)";
+    std::ofstream ofs(opath);
+    if (!ofs) throw;
+    ofs << "[" << path << "]" << std::endl;
+    TokenStream ts(path::Path{path});
+    EXPECT_EQ(f, ts.file());
+    while (true) {
+        auto token = ts.get();
+        if (token.empty()) break;
+        if (path != ts.file()) {
+            path = ts.file();
+            ofs << "\n[" << path << "]" << std::endl;
+        }
+        ofs << "#" << token.line << ":" << token.col << ": ";
+        switch (token.kind) {
+        case TokenKind::constant:
+            ofs << "constant: ";
+            break;
+        case TokenKind::string_literal:
+            ofs << "string_literal: ";
+            break;
+        case TokenKind::keyword:
+            ofs << "keyword: ";
+            break;
+        case TokenKind::identifier:
+            ofs << "identifier: ";
+            break;
+        case TokenKind::dchar:
+            ofs << "dchar: ";
+            break;
+        case TokenKind::schar:
+            ofs << "schar: ";
+            break;
+        default:
+            throw;
+        }
+        ofs << token.val << "\n";
+    }
+    std::cout << ts.errors() << std::endl;
+}
 
 // TEST(Lex_test)
 // {
@@ -139,24 +143,24 @@ namespace compiler_test
 //     std::cout << p.errors() << std::endl;
 // }
 
-TEST(htf_test)
-{
-    FS::path s1 = R"(D:\code\git\Header_to_File\src\compiler\Lex.h)";   
-    FS::path s2 = R"(D:\code\git\Header_to_File\src\compiler\TokenStream.h)";
-    FS::path s3 = R"(D:\code\git\Header_to_File\src\path\Path.h)";
-    FS::path s4 = R"(D:\code\git\Header_to_File\test\txt\pre.h)";
-    FS::path out{R"(D:\code\git\Header_to_File\test\txt\pre.cpp)"};
-    std::set<FS::path> sources{ s1, s2, s3 };
+// TEST(htf_test)
+// {
+//     FS::path s1 = R"(D:\code\git\Header_to_File\src\compiler\Lex.h)";   
+//     FS::path s2 = R"(D:\code\git\Header_to_File\src\compiler\TokenStream.h)";
+//     FS::path s3 = R"(D:\code\git\Header_to_File\src\path\Path.h)";
+//     FS::path s4 = R"(D:\code\git\Header_to_File\test\txt\pre.h)";
+//     FS::path out{R"(D:\code\git\Header_to_File\test\txt\pre.cpp)"};
+//     std::set<FS::path> sources{ s1, s2, s3 };
     
-    FS::path inl1 = R"(D:\code\git\Header_to_File\src\compiler)";
-    FS::path inl2 = R"(D:\code\git\Header_to_File\src\cmdline)";
-    FS::path inl3 = R"(D:\code\git\Header_to_File\src)";
-    FS::path inl4 = R"(D:\code\git\Header_to_File\src\path)";
-    path::Path dir{R"(D:\code\git\Header_to_File\test\txt)"};
-    std::vector<path::Path> dirs{ inl1, inl2, inl3, inl4 };
-    // header_to_file(source, R"(D:\code\git\Header_to_File\test\txt\Lex.cpp)", dirs);
-    header_to_file(s4, out, dirs, true);
-}
+//     FS::path inl1 = R"(D:\code\git\Header_to_File\src\compiler)";
+//     FS::path inl2 = R"(D:\code\git\Header_to_File\src\cmdline)";
+//     FS::path inl3 = R"(D:\code\git\Header_to_File\src)";
+//     FS::path inl4 = R"(D:\code\git\Header_to_File\src\path)";
+//     path::Path dir{R"(D:\code\git\Header_to_File\test\txt)"};
+//     std::vector<path::Path> dirs{ inl1, inl2, inl3, inl4 };
+//     // header_to_file(source, R"(D:\code\git\Header_to_File\test\txt\Lex.cpp)", dirs);
+//     header_to_file(s4, out, dirs, true);
+// }
 
 }
 }

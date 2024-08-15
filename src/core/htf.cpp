@@ -11,15 +11,17 @@ void htf::header_to_file(FS::path source, const FS::path& output_path,
         return;
     }
     // ----------------- preprocess ---------------------
-    auto temp_dir = path::create_htf_temp_directory().path();
+    auto       temp_dir = path::create_htf_temp_directory().path();
     PreProcess pre(p, include_dirs);
-    FS::path preprocess_file = temp_dir / (p.filename(false) + path::HTF_Temp_PreProcess_File_Extension);
+    FS::path   preprocess_file =
+        temp_dir / (p.filename(false) + path::HTF_Temp_PreProcess_File_Extension);
     if (!pre.run(preprocess_file)) {
         cout_error("preprocess errors");
         std::cout << pre.errors() << std::endl;
-        FS::remove_all(temp_dir);
+        pre.clear();
         return;
     }
+    pre.clear(false);
     // ------------------- compiler -----------------------
     {
         Parse parse(preprocess_file, source);
@@ -44,26 +46,27 @@ void htf::header_to_file(FS::path source, const FS::path& output_path,
 void htf::header_to_file(const std::set<FS::path>& sources, const FS::path& output_dir,
                          const std::vector<path::Path>& include_dirs, bool is_force)
 {
-    std::set<FS::path>    visited;
+    std::set<FS::path>      visited;
     std::vector<path::Path> tmp_files;
-    auto temp_dir = path::create_htf_temp_directory().path();
+    auto                    temp_dir = path::create_htf_temp_directory().path();
     for (auto it : sources) {
         if (!path::Path{it}.is_cpp_header()) {
             cout_warn("it's not c++ header file [.h, .hpp, .h++, .inl]:" + mark_path(it));
             continue;
         }
-        PreProcess  pre(it, include_dirs, visited);
-        FS::path preprocess_file = temp_dir / (path::Path{it}.filename(false) + path::HTF_Temp_PreProcess_File_Extension);
+        PreProcess pre(it, include_dirs, visited);
+        FS::path   preprocess_file =
+            temp_dir / (path::Path{it}.filename(false) + path::HTF_Temp_PreProcess_File_Extension);
         if (!pre.run(preprocess_file)) {
             cout_error("preprocess errors");
             std::cout << pre.errors() << std::endl;
-            FS::remove_all(temp_dir);
+            pre.clear();
             return;
         }
         auto v = pre.visited_files();
         visited.insert(v.begin(), v.end());
-        if (FS::exists(preprocess_file)) 
-            tmp_files.emplace_back(std::move(preprocess_file));
+        if (FS::exists(preprocess_file)) tmp_files.emplace_back(std::move(preprocess_file));
+        pre.clear(false);
     }
     if (tmp_files.empty()) return;
     {

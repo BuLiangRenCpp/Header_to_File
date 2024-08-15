@@ -59,7 +59,7 @@ void Lex::open(const path::Path& tmp_file, const std::set<FS::path>& sources)
 Lexer Lex::_get()
 {
     if (!_buffer_tmp.empty()) {
-       return _buffer_tmp.get();
+        return _buffer_tmp.get();
     }
     if (_eof) return Lexer{};
     while (true) {
@@ -115,10 +115,10 @@ Lexer Lex::_get()
                 if (tmp.empty()) {
                     _errors.emplace_back(
                         CompilerError{_ts.file(),
-                                    token.line,
-                                    token.col,
-                                    "after" + mark("operator") + "lack of operation char",
-                                    CompilerError::ErrorCode::bad_lexer});
+                                      token.line,
+                                      token.col,
+                                      "after" + mark("operator") + "lack of operation char",
+                                      CompilerError::ErrorCode::bad_lexer});
                 }
                 return Lexer{"operator" + tmp, LexerKind::identifier, token.line, token.col};
             }
@@ -242,7 +242,7 @@ void Lex::ignore_between_bracket()
 void Lex::ignore_brackets(char bracket, int count)
 {
     HTF_DEV_ASSERT_MESSAGE(is_lbracket(bracket),
-        "Lex::ignore_brackets(..):" << mark(bracket) + "isn't a left bracket");
+                           "Lex::ignore_brackets(..):" << mark(bracket) + "isn't a left bracket");
     char rbra = ret_rbracket(bracket);
     while (count > 0) {
         auto lexer = get();
@@ -379,9 +379,9 @@ void Lex::deal_enum(bool flag)
         else {
             _errors.emplace_back(
                 CompilerError{_ts.file(),
-                            token.line,
-                            token.col,
-                            "after" + mark("enum" + token.val) + "lack of identifier"});
+                              token.line,
+                              token.col,
+                              "after" + mark("enum" + token.val) + "lack of identifier"});
         }
     }
     _ts.ignore_until();
@@ -439,9 +439,9 @@ void Lex::deal_using()
                 if (_ts.peek().val != ";") {
                     _errors.emplace_back(
                         CompilerError{_ts.file(),
-                                    tmp.line,
-                                    tmp.col,
-                                    "after" + mark(tmp.val) + "lack of" + mark(';')});
+                                      tmp.line,
+                                      tmp.col,
+                                      "after" + mark(tmp.val) + "lack of" + mark(';')});
                 }
                 _ts.ignore();
             }
@@ -455,9 +455,9 @@ void Lex::deal_using()
                 if (_ts.peek().val != ";") {
                     _errors.emplace_back(
                         CompilerError{_ts.file(),
-                                    tmp.line,
-                                    tmp.col,
-                                    "after" + mark(tmp.val) + "lack of" + mark(';')});
+                                      tmp.line,
+                                      tmp.col,
+                                      "after" + mark(tmp.val) + "lack of" + mark(';')});
                 }
                 _ts.ignore();
             }
@@ -471,9 +471,9 @@ void Lex::deal_using()
                 if (_ts.peek().val != ";") {
                     _errors.emplace_back(
                         CompilerError{_ts.file(),
-                                    tmp.line,
-                                    tmp.col,
-                                    "after" + mark(tmp.val) + "lack of" + mark(';')});
+                                      tmp.line,
+                                      tmp.col,
+                                      "after" + mark(tmp.val) + "lack of" + mark(';')});
                 }
                 _ts.ignore();
             }
@@ -522,10 +522,10 @@ std::string Lex::get_basic_type_un()
     auto   peek = _ts.peek();
     if (peek.val == "unsigned" || peek.val == "signed") {
         _errors.emplace_back(CompilerError{_ts.file(),
-                                         peek.line,
-                                         peek.col,
-                                         "bad type: redefine" + mark(peek.val),
-                                         CompilerError::ErrorCode::bad_lexer});
+                                           peek.line,
+                                           peek.col,
+                                           "bad type: redefine" + mark(peek.val),
+                                           CompilerError::ErrorCode::bad_lexer});
         return "";
     }
     if (peek.empty()) {
@@ -551,10 +551,10 @@ std::string Lex::get_basic_type_un()
         res.erase(0, 1);
         if (!Basic_Types.count(res)) {
             _errors.emplace_back(CompilerError{_ts.file(),
-                                             peek.line,
-                                             peek.col,
-                                             "invalid type" + mark(res),
-                                             CompilerError::ErrorCode::bad_lexer});
+                                               peek.line,
+                                               peek.col,
+                                               "invalid type" + mark(res),
+                                               CompilerError::ErrorCode::bad_lexer});
             return res;
         }
     }
@@ -611,10 +611,10 @@ void Lex::get_template_type(string& res, std::stack<char> stk)
         res += "<";
         if (_ts.peek().val == "<") {   // <<
             _errors.emplace_back(CompilerError{_ts.file(),
-                                             token.line,
-                                             token.col,
-                                             "after" + mark(token.val) + "lack of identifier",
-                                             CompilerError::ErrorCode::bad_lexer});
+                                               token.line,
+                                               token.col,
+                                               "after" + mark(token.val) + "lack of identifier",
+                                               CompilerError::ErrorCode::bad_lexer});
         }
         return get_template_type(res, stk);
     }
@@ -623,10 +623,10 @@ void Lex::get_template_type(string& res, std::stack<char> stk)
         if (stk.empty()) {
             _errors.emplace_back(
                 CompilerError{_ts.file(),
-                            token.line,
-                            token.col,
-                            "bad template type: before" + mark(res) + "lack of" + mark('<'),
-                            CompilerError::ErrorCode::bad_lexer});
+                              token.line,
+                              token.col,
+                              "bad template type: before" + mark(res) + "lack of" + mark('<'),
+                              CompilerError::ErrorCode::bad_lexer});
             return;
         }
         stk.pop();
@@ -637,10 +637,10 @@ void Lex::get_template_type(string& res, std::stack<char> stk)
         if (!is_id_ch(res.back())) {
             _errors.emplace_back(
                 CompilerError{_ts.file(),
-                            token.line,
-                            token.col,
-                            "bad template type: after" + mark(res) + "lack of valid type",
-                            CompilerError::ErrorCode::bad_lexer});
+                              token.line,
+                              token.col,
+                              "bad template type: after" + mark(res) + "lack of valid type",
+                              CompilerError::ErrorCode::bad_lexer});
             return;
         }
         res += ", ";
@@ -673,10 +673,10 @@ std::string Lex::get_namespace_type()
             auto tmp = _ts.get();
             if (flag == false) {
                 _errors.emplace_back(CompilerError{_ts.file(),
-                                                 tmp.line,
-                                                 tmp.col,
-                                                 "after" + mark(res) + "lack of indentifier",
-                                                 CompilerError::ErrorCode::bad_lexer});
+                                                   tmp.line,
+                                                   tmp.col,
+                                                   "after" + mark(res) + "lack of indentifier",
+                                                   CompilerError::ErrorCode::bad_lexer});
                 return res;
             }
             res += tmp.val;
@@ -705,10 +705,10 @@ std::string Lex::get_operator_name()
             if (_ts.peek().val != "]") {
                 _errors.emplace_back(
                     CompilerError{_ts.file(),
-                                token.line,
-                                token.col,
-                                "after" + mark(token.val + "[") + "lack of" + mark(']'),
-                                CompilerError::ErrorCode::bad_lexer});
+                                  token.line,
+                                  token.col,
+                                  "after" + mark(token.val + "[") + "lack of" + mark(']'),
+                                  CompilerError::ErrorCode::bad_lexer});
                 return res;
             }
             res += "[]";

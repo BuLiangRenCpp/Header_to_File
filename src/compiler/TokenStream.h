@@ -56,19 +56,19 @@ public:
     }
 
 private:
-    std::ifstream            _ifs;
-    bool                     _eof = true;
-    Buffer<Token>            _buffer;
-    FS::path                 _file;       // 当前文件
-    line_t                   _line = 1;   // 当前行号
-    col_t                    _col  = 0;   // 当前列号
+    std::ifstream              _ifs;
+    bool                       _eof = true;
+    Buffer<Token>              _buffer;
+    FS::path                   _file;       // 当前文件
+    line_t                     _line = 1;   // 当前行号
+    col_t                      _col  = 0;   // 当前列号
     std::vector<CompilerError> _errors;
 
 private:
     struct Info {
         FS::path file;
-        line_t      line;
-        col_t       col;
+        line_t   line;
+        col_t    col;
 
         Info(const FS::path& f, line_t l, col_t c) : file{f}, line{l}, col{c} {}
     };
@@ -98,6 +98,9 @@ public:
     // void ignore_current_file();
 
 private:
+    // 处理 R"xx()xx"
+    // 调用这必须判断字符以 R" 开头，并且将 R 读取掉
+    std::string get_raw_string();
     // 读取 . 之后的值以及 flaot-suffix
     std::string get_float();
     // 以下只读取前缀到后缀之间的数字
@@ -118,7 +121,7 @@ private:
     // 包括 keyword
     // ! 第一个字符由调用者判断: 内部仅判断第一个字符是否是 非 id 字符
     // * 即不判断是否以 非数字字符 开头
-    Token get_identifier();
+    std::string get_identifier();
     // 调用者判断第一个字符是 dchar first，
     // 但可能返回的是 schar
     Token get_dchar();

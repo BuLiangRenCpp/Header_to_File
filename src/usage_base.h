@@ -11,4 +11,4 @@ char ret_lbracket(char c);
 // 如果不是返回它本身
 char ret_rbracket(char c);
 
-}//
+}   // namespace htf

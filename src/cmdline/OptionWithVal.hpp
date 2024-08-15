@@ -121,10 +121,10 @@ public:
     void clear() override { _val.clear(); }
 
 private:
-    std::string _name;
-    char        _sname;
-    std::string _desc;
-    OptionValue<value_type> _val;   // 实际值   
+    std::string             _name;
+    char                    _sname;
+    std::string             _desc;
+    OptionValue<value_type> _val;   // 实际值
     bool                    _is_default;
     OptionValue<value_type> _default_val;
 };

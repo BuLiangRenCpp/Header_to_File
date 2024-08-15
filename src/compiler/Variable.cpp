@@ -92,8 +92,7 @@ std::string get_value(Lex& lex)
         }
         else if (lexer.kind == LexerKind::identifier || lexer.kind == LexerKind::type) {
             res += lexer.val;
-            if (lex.peek().val == "{") 
-                res += get_between_brackets(lex);
+            if (lex.peek().val == "{") res += get_between_brackets(lex);
         }
     }
     else if (lexer.val == "{") {

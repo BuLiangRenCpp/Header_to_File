@@ -17,7 +17,7 @@ namespace cmdline
 
 class Option
 {
-public:   
+public:
     Option() = default;
     ~Option();
 
@@ -35,8 +35,8 @@ public:
              const T& default_value = T{})
     {
         THROW_EXCEP_CMDLINE_IF(_options.count(name), "multiple definition" << mark(name));
-        THROW_EXCEP_CMDLINE_IF(_short_to_name.count(short_name), 
-            "multiple definition short option" << mark(short_name));
+        THROW_EXCEP_CMDLINE_IF(_short_to_name.count(short_name),
+                               "multiple definition short option" << mark(short_name));
         THROW_EXCEP_CMDLINE_IF(is_default && (_default != nullptr), "default option only one");
         _options[name] =
             new OptionWithVal<T>(name, short_name, description, is_must, is_default, default_value);
@@ -53,8 +53,8 @@ public:
                   bool is_must = false, const std::vector<T>& default_values = {})
     {
         THROW_EXCEP_CMDLINE_IF(_options.count(name), "multiple definition" << mark(name));
-        THROW_EXCEP_CMDLINE_IF(_short_to_name.count(short_name), 
-            "multiple definition short option" << mark(short_name));
+        THROW_EXCEP_CMDLINE_IF(_short_to_name.count(short_name),
+                               "multiple definition short option" << mark(short_name));
         THROW_EXCEP_CMDLINE_IF(is_default && (_default != nullptr), "default option only one");
         _options[name] = new OptionWithVal<T>(
             name, short_name, description, is_must, is_default, default_values);
