@@ -1,15 +1,17 @@
 #include "PreProcess.h"
 #include "base_info.h"
+#include "ExcepPath.h"
+#include "assertions.h"
 
 using namespace std;
 
 namespace htf
 {
 
-const std::string HTF_PRE_ID = "BLR::Header_to_File:htf:" + std::string{HTF_VERSION};
+const std::string HTF_PreProcess_File_Id = "BLR::Header_to_File:htf:" + std::string{HTF_VERSION};
 
-PreProcess::PreProcess(const path::Cfile& cfile, const std::vector<path::Dir>& include_dirs,
-                       const std::set<std::string>& not_include)
+PreProcess::PreProcess(const path::Path& cfile, const std::vector<path::Path>& include_dirs,
+                       const std::set<FS::path>& not_include)
     : _source{cfile}
     , _cur{cfile}
     , _include_dirs{include_dirs}
@@ -38,28 +40,25 @@ static int is_pre_ins(const string& str)
     return pos;
 }
 
-bool PreProcess::run(string output_path, const std::string& temp_dir)
+bool PreProcess::run(FS::path output_path, const FS::path& temp_dir)
 {
-    if (_not_include.count(_source.str())) return true;
-    if (!FS::is_directory(temp_dir)) FS::create_directory(temp_dir);
+    if (_not_include.count(_source.path())) return true;
+    if (!FS::is_directory(temp_dir)) 
+        THROW_EXCEP_PATH_IF(!FS::create_directory(temp_dir), temp_dir, path::ExcepPath::ErrorCode::not_create_directory);
     if (output_path.empty())
-        output_path = path::Dir{temp_dir}.append_path(_source.change_extension_filename());
+        output_path = temp_dir / (_source.filename(false) + path::HTF_Temp_PreProcess_File_Extension);
     // --------- 覆盖源文件 -------------
     Ofstream o(output_path);
-    if (!o)
-        throw path::ExcepPath{
-            "PreProcess::run(..out)", output_path, path::PathErrors::not_create_file};
+    THROW_EXCEP_PATH_IF(!o, output_path, path::ExcepPath::ErrorCode::not_create_file);
     o.close();
     // ------------ app -----------------
     Ofstream ofs(output_path, Ofstream::app);
-    if (!ofs)
-        throw path::ExcepPath{
-            "PreProcess::run(..add)", output_path, path::PathErrors::not_open_file};
-    ofs << HTF_PRE_ID << endl;
-    ofs << "##" << _source << endl;
+    THROW_EXCEP_PATH_IF(!ofs, output_path, path::ExcepPath::ErrorCode::not_open_file);
+    ofs << HTF_PreProcess_File_Id << endl;
+    ofs << "##" << _source.path().string() << endl;
     // -------------------------------------
-    _tmp_files[_cur.str()] = path::Dir{temp_dir}.htf_temp_file();
-    _tmp_tasks.push(_cur.str());
+    _tmp_files[_cur.path()] = path::create_htf_temp_file(temp_dir).path();
+    _tmp_tasks.push(_cur.path());
     // ------------ 处理单文件 -------------
     while (!_tmp_tasks.empty()) {
         auto path = _tmp_tasks.front();
@@ -77,7 +76,7 @@ bool PreProcess::run(string output_path, const std::string& temp_dir)
     }
     // ---------- 将临时文件合并 ------------
     _tmp_visited.clear();
-    merge_temp_file(_source.str(), ofs);
+    merge_temp_file(_source.path(), ofs);
     return _errors.empty();
 }
 
@@ -93,45 +92,27 @@ std::string PreProcess::errors() const
 
 void PreProcess::clear()
 {
-    auto tmp = _tmp_files.begin();
-    if (tmp != _tmp_files.end()) {
-        auto dir = FS::path(tmp->second).parent_path();
-        if (dir.filename() == path::Htf_Temp_Dir) {
-            FS::remove_all(dir);
-            try {
-                FS::remove_all(dir);
-            }
-            catch (const std::exception& e) {
-                cout_error_dev("PreProcess::clear(): cannot remove dir" + mark(dir.string()) +
-                               ": " + e.what());
-            }
-        }
-    }
     for (auto it : _tmp_files) {
         auto path = it.second;
-        if (FS::path(path).extension().string() != ".htf_temp") {
-            cout_error_dev("PreProcess::clear(): not htf temp file" + mark(path));
-            return;
-        }
+        HTF_DEV_ASSERT_MESSAGE(FS::path(path).extension().string() == path::HTF_Temp_File_Extension, 
+            "not htf temp file" << mark_path(path));
         try {
             FS::remove(path);
         }
         catch (const std::exception& e) {
-            cout_error_dev("PreProcess::clear(): cannot remove file" + mark(path) + ": " +
-                           e.what());
+            HTF_DEV_ASSERT_MESSAGE(false, "not remove htf temp file" << mark_path(path) << ": " << e.what());
         }
     }
 }
 
-void PreProcess::deal_single_file(const std::string& path)
+void PreProcess::deal_single_file(const FS::path& path)
 {
     Ifstream    ifs(path);
-    std::string ofile = _tmp_files[path];
+    FS::path ofile = _tmp_files[path];
     Ofstream    ofs(ofile);
-    if (!ifs)
-        throw path::ExcepPath{"PreProcess::run(....)", _cur.str(), path::PathErrors::not_open_file};
-    if (!ofs) throw path::ExcepPath{"PreProcess::run(....)", "cannot create temp file" + ofile};
-    ofs << HTF_PRE_ID << endl;
+    THROW_EXCEP_PATH_IF(!ifs, path, path::ExcepPath::ErrorCode::not_open_file);
+    THROW_EXCEP_PATH1_IF(!ofs, "cannot create temp file" << ofile);
+    ofs << HTF_PreProcess_File_Id << endl;
     while (true) {
         auto   old_line = _line;
         string str      = deal_line(ifs);
@@ -150,11 +131,11 @@ void PreProcess::deal_single_file(const std::string& path)
                 while (-1 != index) {
                     string tmp = deal_line(ifs);
                     if (tmp.empty()) {
-                        _errors.emplace_back(ExcepSyntax{_cur,
+                        _errors.emplace_back(CompilerError{_cur,
                                                          _line,
                                                          0,
                                                          "block comment: lack of" + mark("*/"),
-                                                         SyntaxError::bad_preprocess});
+                                                         CompilerError::CompilerError::ErrorCode::bad_preprocess});
                         return;
                     }
                     str += std::move(tmp);
@@ -167,9 +148,9 @@ void PreProcess::deal_single_file(const std::string& path)
         int index = is_pre_ins(str);
         if (index != -1) {
             // ------------ include ------------
-            string new_path = is_include(str, index + 1);
+            std::string new_path = is_include(str, index + 1);
             if (new_path != "") {
-                deal_include(new_path, path::Cfile(ofile).parent_dir());
+                deal_include(new_path, ofile.parent_path());
                 str = new_path;
             }
             // ------ other only ignore -------
@@ -181,18 +162,16 @@ void PreProcess::deal_single_file(const std::string& path)
     }
 }
 
-void PreProcess::merge_temp_file(const std::string& ifile, Ofstream& ofs)
+void PreProcess::merge_temp_file(const FS::path& ifile, Ofstream& ofs)
 {
     if (_tmp_visited.count(ifile)) return;
     auto path           = _tmp_files[ifile];
     _tmp_visited[ifile] = path;
     Ifstream ifs(path);
-    if (!ifs)
-        throw path::ExcepPath{"PreProcess::merge_temp_file", path, path::PathErrors::not_open_file};
+    THROW_EXCEP_PATH_IF(!ifs, path, path::ExcepPath::ErrorCode::not_open_file);
     string line;
     getline(ifs, line);
-    if (line != HTF_PRE_ID)
-        throw path::ExcepPath{"PreProcess::merge_temp_file", mark(path) + "isn't htf temp file"};
+    HTF_DEV_ASSERT_MESSAGE(line == HTF_PreProcess_File_Id, mark_path(path) << "lack of preprocess-file-id");
     bool is_eof = false;
     while (!is_eof) {
         getline(ifs, line);
@@ -211,8 +190,6 @@ void PreProcess::merge_temp_file(const std::string& ifile, Ofstream& ofs)
         ofs << line << "\n";
     }
 }
-
-
 
 // 删除前导空格 (保留一个)
 static void delete_space_pre(string& str)
@@ -276,6 +253,7 @@ void PreProcess::deal_line_comment(std::string& str, int pos)
     str += "\n";
 }
 
+// ! 目前 BUG: "/*/" 字符串被按照 /*/ 处理 ---------------------
 // pos: the '*' pos
 // return: -1 正确
 // return: /* 中的 '*' 的下标
@@ -294,7 +272,7 @@ int PreProcess::deal_block_comment(string& str, int pos)
     return deal_block_comment(str, pos + 1);
 }
 
-string PreProcess::is_include(string str, int pos)
+std::string PreProcess::is_include(string str, int pos)
 {
     if (str.back() == '\n') str.pop_back();
     auto index = str.find("include", pos);
@@ -302,19 +280,19 @@ string PreProcess::is_include(string str, int pos)
     index    = index + 7;   // include|
     auto len = str.length();
     if (index >= len) {
-        _errors.emplace_back(ExcepSyntax{_cur,
+        _errors.emplace_back(CompilerError{_cur,
                                          _line,
                                          static_cast<col_t>(index),
                                          "after" + mark("#include") + "lack of path",
-                                         SyntaxError::bad_preprocess});
+                                         CompilerError::ErrorCode::bad_preprocess});
         return "";
     }
     else if (index < len && str[index] != ' ') {
-        _errors.emplace_back(ExcepSyntax(_cur,
+        _errors.emplace_back(CompilerError(_cur,
                                          _line,
                                          pos,
                                          "after" + mark("#include") + "lack of space",
-                                         SyntaxError::bad_preprocess));
+                                         CompilerError::ErrorCode::bad_preprocess));
         return "";
     }
     for (int i = index + 1; i < len; i++) {
@@ -323,21 +301,21 @@ string PreProcess::is_include(string str, int pos)
         if (str[i] == '\"') {
             auto right = str.rfind('\"');
             if (right <= i) {
-                _errors.emplace_back(ExcepSyntax(_cur,
+                _errors.emplace_back(CompilerError(_cur,
                                                  _line,
                                                  len - 1,
                                                  "after" + mark(str) + "lack of" + mark('"'),
-                                                 SyntaxError::bad_preprocess));
+                                                 CompilerError::ErrorCode::bad_preprocess));
                 return "";
             }
             return str.substr(i + 1, right - i - 1);
         }
-        _errors.emplace_back(ExcepSyntax{
+        _errors.emplace_back(CompilerError{
             _cur,
             _line,
             static_cast<col_t>(i),
             "after" + mark(str.substr(0, i)) + "lack of" + mark('\"') + "or" + mark('<'),
-            SyntaxError::bad_preprocess});
+            CompilerError::ErrorCode::bad_preprocess});
         break;
     }
     return "";
@@ -348,34 +326,36 @@ string PreProcess::is_include(string str, int pos)
 // 否则: return path
 // - first: find  _cur / path
 // - second: find include_dir
-string PreProcess::find_path(const string& path)
+FS::path PreProcess::find_path(const FS::path& path)
 {
-    auto tmp = _cur.parent_dir().append_path(path);
+    auto tmp = _cur.parent_directory().path() / path;
     if (FS::is_regular_file(tmp)) return FS::canonical(tmp).string();
     for (auto dir : _include_dirs) {
-        if (dir.have_file(path)) return FS::canonical(dir.append_path(path)).string();
+        path::Path p(dir);
+        if (p.have_file(path.string())) 
+            return FS::canonical(p.path() / path);
     }
     return "";
 }
 
-void PreProcess::deal_include(string& path, const path::Dir& temp_dir)
+void PreProcess::deal_include(std::string& path, const path::Path& temp_dir)
 {
     auto tmp = find_path(path);
     if (tmp == "") {
-        _errors.emplace_back(ExcepSyntax{_cur,
+        _errors.emplace_back(CompilerError{_cur,
                                          _line,
                                          0,
-                                         mark("#include") + ": not find" + mark(path),
-                                         SyntaxError::bad_preprocess});
+                                         mark("#include") + ": not find" + mark_path(path),
+                                         CompilerError::ErrorCode::bad_preprocess});
         path = "\n";
         return;
     }
     path = "\n";
     if (_not_include.count(tmp)) return;
     if (!_tmp_files.count(tmp)) {
-        _tmp_files[tmp] = temp_dir.htf_temp_file();
+        _tmp_files[tmp] = path::create_htf_temp_file(temp_dir).path();
         _tmp_tasks.push(tmp);
-        path = "#" + std::move(tmp) + path;
+        path = "#" + std::move(tmp.string()) + path;
     }
 }
 

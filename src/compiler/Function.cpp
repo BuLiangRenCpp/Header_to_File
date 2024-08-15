@@ -5,7 +5,7 @@
 namespace htf
 {
 
-const std::string Function_Brackets_Str = "\n{\n\n}\n";
+const std::string HTF_Function_Brackets_Str = "\n{\n\n}\n";
 
 Function::Function() : ret_type{""}, name{""}, args{}, limits{""}, is_destructor{false}
 {}

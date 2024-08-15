@@ -1,6 +1,7 @@
 #include "Lex.h"
 
 #include "assertions.h"
+#include "output.h"
 #include "usage.h"
 
 using namespace std;
@@ -21,7 +22,7 @@ const set<string> Basic_Types{// 基本类型有效组合 (不带 unsigned signe
 namespace htf
 {
 
-Lex::Lex(const path::Cfile& tmp_file, const std::set<std::string>& sources)
+Lex::Lex(const path::Path& tmp_file, const std::set<FS::path>& sources)
     : _ts{tmp_file}
     , _eof{false}
     , _file{_ts.file()}
@@ -45,19 +46,20 @@ static bool is_basic_type_pre(const Token& token)
     return token.kind == TokenKind::keyword && Basic_Type_Pre.count(token.val);
 }
 
-void Lex::open(const path::Cfile& tmp_file, const std::set<std::string>& sources)
+void Lex::open(const path::Path& tmp_file, const std::set<FS::path>& sources)
 {
     _eof = false;
     _ts.open(tmp_file);
     _file    = _ts.file();
     _sources = sources;
+    HTF_DEV_ASSERT_MESSAGE(!_sources.empty(), "Lex::open(..): sources cannot be empty");
     _buffer.clear();
 }
 
 Lexer Lex::_get()
 {
     if (!_buffer_tmp.empty()) {
-        return _buffer_tmp.get();
+       return _buffer_tmp.get();
     }
     if (_eof) return Lexer{};
     while (true) {
@@ -112,11 +114,11 @@ Lexer Lex::_get()
                 auto tmp = get_operator_name();
                 if (tmp.empty()) {
                     _errors.emplace_back(
-                        ExcepSyntax{_ts.file(),
+                        CompilerError{_ts.file(),
                                     token.line,
                                     token.col,
                                     "after" + mark("operator") + "lack of operation char",
-                                    SyntaxError::bad_lexer});
+                                    CompilerError::ErrorCode::bad_lexer});
                 }
                 return Lexer{"operator" + tmp, LexerKind::identifier, token.line, token.col};
             }
@@ -239,9 +241,8 @@ void Lex::ignore_between_bracket()
 
 void Lex::ignore_brackets(char bracket, int count)
 {
-    HTF_DEV_ASSERT_MESSAGE(
-        is_lbracket(bracket),
-        "Lex::ignore_brackets(..):" << HTF_DEV_MARK(bracket) + "isn't a left bracket");
+    HTF_DEV_ASSERT_MESSAGE(is_lbracket(bracket),
+        "Lex::ignore_brackets(..):" << mark(bracket) + "isn't a left bracket");
     char rbra = ret_rbracket(bracket);
     while (count > 0) {
         auto lexer = get();
@@ -285,7 +286,7 @@ void Lex::add_type(const std::string& type)
 
 void Lex::add_error(const Lexer& where, const string& error)
 {
-    _errors.emplace_back(ExcepSyntax{_file, where.line, where.col, error});
+    _errors.emplace_back(CompilerError{_file, where.line, where.col, error});
 }
 
 void Lex::update_type()
@@ -328,7 +329,7 @@ void Lex::deal_template()
     auto peek = _ts.get();
     peek      = _ts.peek();
     if (peek.val != "<") {
-        _errors.emplace_back(ExcepSyntax{
+        _errors.emplace_back(CompilerError{
             _ts.file(), peek.line, peek.col, "after" + mark("template") + "lack of" + mark('<')});
         return;
     }
@@ -377,7 +378,7 @@ void Lex::deal_enum(bool flag)
         }
         else {
             _errors.emplace_back(
-                ExcepSyntax{_ts.file(),
+                CompilerError{_ts.file(),
                             token.line,
                             token.col,
                             "after" + mark("enum" + token.val) + "lack of identifier"});
@@ -437,7 +438,7 @@ void Lex::deal_using()
                 _types.add(tmp.val);
                 if (_ts.peek().val != ";") {
                     _errors.emplace_back(
-                        ExcepSyntax{_ts.file(),
+                        CompilerError{_ts.file(),
                                     tmp.line,
                                     tmp.col,
                                     "after" + mark(tmp.val) + "lack of" + mark(';')});
@@ -453,7 +454,7 @@ void Lex::deal_using()
                 _types.add(tmp.val);
                 if (_ts.peek().val != ";") {
                     _errors.emplace_back(
-                        ExcepSyntax{_ts.file(),
+                        CompilerError{_ts.file(),
                                     tmp.line,
                                     tmp.col,
                                     "after" + mark(tmp.val) + "lack of" + mark(';')});
@@ -469,7 +470,7 @@ void Lex::deal_using()
                 _types.add(tmp.val);
                 if (_ts.peek().val != ";") {
                     _errors.emplace_back(
-                        ExcepSyntax{_ts.file(),
+                        CompilerError{_ts.file(),
                                     tmp.line,
                                     tmp.col,
                                     "after" + mark(tmp.val) + "lack of" + mark(';')});
@@ -520,11 +521,11 @@ std::string Lex::get_basic_type_un()
     string res;
     auto   peek = _ts.peek();
     if (peek.val == "unsigned" || peek.val == "signed") {
-        _errors.emplace_back(ExcepSyntax{_ts.file(),
+        _errors.emplace_back(CompilerError{_ts.file(),
                                          peek.line,
                                          peek.col,
                                          "bad type: redefine" + mark(peek.val),
-                                         SyntaxError::bad_lexer});
+                                         CompilerError::ErrorCode::bad_lexer});
         return "";
     }
     if (peek.empty()) {
@@ -549,11 +550,11 @@ std::string Lex::get_basic_type_un()
     if (!res.empty()) {
         res.erase(0, 1);
         if (!Basic_Types.count(res)) {
-            _errors.emplace_back(ExcepSyntax{_ts.file(),
+            _errors.emplace_back(CompilerError{_ts.file(),
                                              peek.line,
                                              peek.col,
                                              "invalid type" + mark(res),
-                                             SyntaxError::bad_lexer});
+                                             CompilerError::ErrorCode::bad_lexer});
             return res;
         }
     }
@@ -609,11 +610,11 @@ void Lex::get_template_type(string& res, std::stack<char> stk)
         stk.push('<');
         res += "<";
         if (_ts.peek().val == "<") {   // <<
-            _errors.emplace_back(ExcepSyntax{_ts.file(),
+            _errors.emplace_back(CompilerError{_ts.file(),
                                              token.line,
                                              token.col,
                                              "after" + mark(token.val) + "lack of identifier",
-                                             SyntaxError::bad_lexer});
+                                             CompilerError::ErrorCode::bad_lexer});
         }
         return get_template_type(res, stk);
     }
@@ -621,11 +622,11 @@ void Lex::get_template_type(string& res, std::stack<char> stk)
         res += ">";
         if (stk.empty()) {
             _errors.emplace_back(
-                ExcepSyntax{_ts.file(),
+                CompilerError{_ts.file(),
                             token.line,
                             token.col,
                             "bad template type: before" + mark(res) + "lack of" + mark('<'),
-                            SyntaxError::bad_lexer});
+                            CompilerError::ErrorCode::bad_lexer});
             return;
         }
         stk.pop();
@@ -635,11 +636,11 @@ void Lex::get_template_type(string& res, std::stack<char> stk)
     else if (token.val == ",") {
         if (!is_id_ch(res.back())) {
             _errors.emplace_back(
-                ExcepSyntax{_ts.file(),
+                CompilerError{_ts.file(),
                             token.line,
                             token.col,
                             "bad template type: after" + mark(res) + "lack of valid type",
-                            SyntaxError::bad_lexer});
+                            CompilerError::ErrorCode::bad_lexer});
             return;
         }
         res += ", ";
@@ -671,11 +672,11 @@ std::string Lex::get_namespace_type()
         if (_ts.peek().val == "::") {
             auto tmp = _ts.get();
             if (flag == false) {
-                _errors.emplace_back(ExcepSyntax{_ts.file(),
+                _errors.emplace_back(CompilerError{_ts.file(),
                                                  tmp.line,
                                                  tmp.col,
                                                  "after" + mark(res) + "lack of indentifier",
-                                                 SyntaxError::bad_lexer});
+                                                 CompilerError::ErrorCode::bad_lexer});
                 return res;
             }
             res += tmp.val;
@@ -703,11 +704,11 @@ std::string Lex::get_operator_name()
         if (token.val == "[") {
             if (_ts.peek().val != "]") {
                 _errors.emplace_back(
-                    ExcepSyntax{_ts.file(),
+                    CompilerError{_ts.file(),
                                 token.line,
                                 token.col,
                                 "after" + mark(token.val + "[") + "lack of" + mark(']'),
-                                SyntaxError::bad_lexer});
+                                CompilerError::ErrorCode::bad_lexer});
                 return res;
             }
             res += "[]";

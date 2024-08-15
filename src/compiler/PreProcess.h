@@ -12,7 +12,7 @@
 
 /**
  * * [输出约定]:
- * * - 第一行为标识字符: HTF_PRE_ID，表明是 PreProcess 生成的文件 (如果没有则不能处理)
+ * * - 第一行为标识字符: Htf_PreProcess_File_Id，表明是 PreProcess 生成的文件 (如果没有则不能处理)
  * * - 第二行为： ##path  (path 为源文件的路径，不是 tempfile 的路径)
  * * - #include 只处理使用 ""
  * *    - 将 #include "file.h" 换为  '#file.h完整路径'
@@ -28,13 +28,13 @@
 #include <set>
 #include <vector>
 
-#include "Cfile.h"
-#include "ExcepSyntax.h"
+#include "Path.h"
+#include "CompilerError.h"
 
 namespace htf
 {
 
-extern const std::string HTF_PRE_ID;
+extern const std::string HTF_PreProcess_File_Id;
 
 class PreProcess
 {
@@ -44,20 +44,20 @@ public:
     // - not_include: 指出不需要展开的路径
     // - - 默认将所有  #include "" 都展开
     // - - 指出的话应该是绝对路径，在 deal_include 时比较
-    PreProcess(const path::Cfile& source, const std::vector<path::Dir>& include_dirs = {},
-               const std::set<std::string>& not_include = {});
+    PreProcess(const path::Path& source, const std::vector<path::Path>& include_dirs = {},
+               const std::set<FS::path>& not_include = {});
     ~PreProcess();
 
 public:
     // - output_path: 指定输出路径 (if output_path == "": use default path
     // 注意可能会覆盖源文件)
     // - temp_dir: 指定临时文件输出路径 (默认 current)
-    bool run(std::string        output_path = "",
-             const std::string& temp_dir    = (FS::current_path() / path::Htf_Temp_Dir).string());
+    bool run(FS::path output_path = "",
+             const FS::path& temp_dir     = (FS::current_path() / path::HTF_Temp_Directory_Name));
     // 返回已经处理过的文件
-    std::set<std::string> visited_files() const
+    std::set<FS::path> visited_files() const
     {
-        std::set<std::string> res;
+        std::set<FS::path> res;
         for (auto it : _tmp_visited) {
             res.insert(it.first);
         }
@@ -65,30 +65,32 @@ public:
     }
 
     std::string errors() const;
+    // 仅移除临时文件
     void        clear();
 
 private:
-    path::Cfile            _source;   // 第一次初始化的文件
-    path::Cfile            _cur;      // 当前正在处理的文件
-    std::vector<path::Dir> _include_dirs;
-    std::set<std::string>  _not_include;
+    path::Path            _source;   // 第一次初始化的文件
+    path::Path            _cur;      // 当前正在处理的文件
+    std::vector<path::Path> _include_dirs;
+    std::set<FS::path>  _not_include;
     line_t                 _line;   // 当前文件所在行号
-    // col_t _col;            // 当前文件所在列号
-    std::vector<ExcepSyntax> _errors;   // * 后续想法: 当错误达到指定量时才输出 (或者 run 结束)
-    std::map<std::string, std::string> _tmp_files;   // file.h 对应的临时文件 file.i
-    std::queue<std::string>
-        _tmp_tasks;   // file.h  // * 从 tasks 取任务，通过 map 找到对应的 输出路径
-    std::map<std::string, std::string>
-        _tmp_visited;   // 已经处理的文件  //* 用于避免重复处理文件，以及删除临时文件
+    std::vector<CompilerError> _errors;   // * 后续想法: 当错误达到指定量时才输出 (或者 run 结束)
+
+private:
+    std::map<FS::path, FS::path> _tmp_files;   // file.h 对应的临时文件 file.i
+    std::queue<FS::path>
+        _tmp_tasks;   // * 从 tasks 取任务，通过 map 找到对应的 输出路径
+    std::map<FS::path, FS::path>
+        _tmp_visited;   // * 已经处理的文件, 用于避免重复处理文件，以及删除临时文件
 
 private:
     // 处理单个文件:
     // path: input file path, 调用则保证 path 已经存在 _tmp_files
-    void deal_single_file(const std::string& path);
+    void deal_single_file(const FS::path& path);
     // 合并临时文件
     // ofs: 调用前已经确定 ofs.good
     // * ifile must be '_source'
-    void merge_temp_file(const std::string& ifile, Ofstream& ofs);
+    void merge_temp_file(const FS::path& ifile, Ofstream& ofs);
 
 private:
     /**
@@ -119,14 +121,13 @@ private:
     // - -    ""   :   #include <..>  and  other(_errors)
     std::string is_include(std::string str, int pos);
     // - str: "path.h"  ->  #path.h
-    // - pos: str.find("include")
     // 将 path.h 对应的临时文件路径 加入 _tmp_files
-    void deal_include(std::string& path, const path::Dir& output_dir);
+    void deal_include(std::string& path, const path::Path& output_dir);
     // 如果为找到: return ""
     // 否则: return path
     // - first: find  _cur / path
     // - second: find include_dir
-    std::string find_path(const std::string& path);
+    FS::path find_path(const FS::path& path);
 };
 
 }   // namespace htf

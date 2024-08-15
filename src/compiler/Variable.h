@@ -25,6 +25,9 @@ struct Variable {
 namespace detail
 {
 
+// 判断两个类型是否相似
+bool is_similar_type(const std::string& type1, const std::string& type2);
+
 // 根据下一字符进行判断
 // 读取括号之间的部分，按 匹配规则
 std::string get_between_brackets(Lex& lex);
@@ -35,6 +38,7 @@ std::string get_between_brackets(Lex& lex);
 // * 调用者确定第一个 token == "=" or "{"
 std::string get_value(Lex& lex);
 
+// * 当结尾是 ; 时会被读取掉
 Variable get_variable(Lex& lex);
 
 }   // namespace detail

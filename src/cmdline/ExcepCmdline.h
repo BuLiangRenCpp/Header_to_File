@@ -7,21 +7,20 @@ namespace htf
 namespace cmdline
 {
 
+#define THROW_EXCEP_CMDLINE_IF(expr, msg) \
+    do { \
+        if ((expr)) { \
+            std::ostringstream oss;            \
+            oss << HTF_ERROR_WHERE << msg;     \
+            throw htf::cmdline::ExcepCmdline{oss.str()}; \
+        } \
+    } while(0)
+
 class ExcepCmdline : public ExcepBase
 {
 public:
-    ExcepCmdline(const std::string& where, const what_type& what);
+    ExcepCmdline(const std::string& what) : ExcepBase{ "cmdline-error: " + what } { }
     ~ExcepCmdline() = default;
-
-public:
-    std::string str() const override
-    {
-#ifdef USER
-        return "cmdline-error: " + _what;
-#else
-        return "cmdline-error: " + _where + ": " + _what;
-#endif
-    }
 };
 
 }   // namespace cmdline

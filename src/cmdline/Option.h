@@ -7,7 +7,6 @@
 #include "ExcepCmdline.h"
 #include "OptionWithVal.hpp"
 #include "OptionWithoutVal.h"
-#include "exceptdef.h"
 
 namespace htf
 {
@@ -35,12 +34,10 @@ public:
              const std::string& description = "", bool is_must = false, bool is_default = false,
              const T& default_value = T{})
     {
-        THROW_LOGIC_ERROR_IF(_options.count(name),
-                             "template Option::add: multiple definition" << mark(name));
-        THROW_LOGIC_ERROR_IF(_short_to_name.count(short_name),
-                             "Option::add: multiple definition short option" << mark(short_name));
-        THROW_LOGIC_ERROR_IF(is_default && (_default != nullptr),
-                             "Option::add: default option only one");
+        THROW_EXCEP_CMDLINE_IF(_options.count(name), "multiple definition" << mark(name));
+        THROW_EXCEP_CMDLINE_IF(_short_to_name.count(short_name), 
+            "multiple definition short option" << mark(short_name));
+        THROW_EXCEP_CMDLINE_IF(is_default && (_default != nullptr), "default option only one");
         _options[name] =
             new OptionWithVal<T>(name, short_name, description, is_must, is_default, default_value);
         if (short_name != OptionBase::no_short_name) _short_to_name[short_name] = name;
@@ -55,12 +52,10 @@ public:
                   const std::string& description = "", bool is_default = false,
                   bool is_must = false, const std::vector<T>& default_values = {})
     {
-        THROW_LOGIC_ERROR_IF(_options.count(name),
-                             "template Option::add_more: multiple definition" << mark(name));
-        THROW_LOGIC_ERROR_IF(_short_to_name.count(short_name),
-                             "Option::add: multiple definition short option" << mark(name));
-        THROW_LOGIC_ERROR_IF(is_default && (_default != nullptr),
-                             "Option::add_more: default option only one");
+        THROW_EXCEP_CMDLINE_IF(_options.count(name), "multiple definition" << mark(name));
+        THROW_EXCEP_CMDLINE_IF(_short_to_name.count(short_name), 
+            "multiple definition short option" << mark(short_name));
+        THROW_EXCEP_CMDLINE_IF(is_default && (_default != nullptr), "default option only one");
         _options[name] = new OptionWithVal<T>(
             name, short_name, description, is_must, is_default, default_values);
         if (short_name != OptionBase::no_short_name) _short_to_name[short_name] = name;
@@ -81,23 +76,19 @@ public:
 
     OptionBase* const get_option(const std::string& option_name) const
     {
-        THROW_OUT_OF_RANGE_IF(!exist(option_name),
-                              "Option::get_option(const std::string&): No such option: --"
-                                  << option_name);
+        THROW_EXCEP_CMDLINE_IF(!exist(option_name), "No such option: --" << option_name);
         return _options.at(option_name);
     }
 
     OptionBase* const get_option(char short_name) const
     {
-        THROW_OUT_OF_RANGE_IF(!exist(short_name),
-                              "Option::get_option(char): No such short option: -" << short_name);
+        THROW_EXCEP_CMDLINE_IF(!exist(short_name), "No such short option: -" << short_name);
         return _options.at(_short_to_name.at(short_name));
     }
 
     std::string get_name(char short_name)
     {
-        THROW_OUT_OF_RANGE_IF(!exist(short_name),
-                              "Option::get_name(char): No such short option: -" << short_name);
+        THROW_EXCEP_CMDLINE_IF(!exist(short_name), "No such short option: -" << short_name);
         return _short_to_name.at(short_name);
     }
 

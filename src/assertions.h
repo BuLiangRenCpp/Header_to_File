@@ -1,6 +1,10 @@
 #pragma once
 
 /**
+ * * [规范]：
+ * *    - assertion: 仅用于 dev 
+ * *    - ExcepBase: 用于 user
+ * *    - debug: 仅 debug 时有效
  * 此文件包含了一些断言：
  *  - assert_*：用于测试条件是否为 true，true 则通过
  *  - expect_*：用于测试 * 是否为 true
@@ -22,9 +26,6 @@ namespace htf
         std::cerr << oss.str() << std::endl; \
         exit(1);                             \
     } while (0)
-
-// * dev assert:
-#define HTF_DEV_MARK(str) '"' << str << '"'
 
 #define _DEV_PRE_INFO "DEV-ERROR: " << _HTF_INFO
 

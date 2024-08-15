@@ -7,7 +7,7 @@
 namespace htf
 {
 
-extern const std::string Function_Brackets_Str;
+extern const std::string HTF_Function_Brackets_Str;
 
 class Function
 {
@@ -25,7 +25,7 @@ public:
         std::ostringstream oss;
         oss << ret_type;
         if (!name.empty()) oss << " " << name;
-        oss << args_str() << " " << limits << Function_Brackets_Str;
+        oss << args_str() << " " << limits << HTF_Function_Brackets_Str;
         return oss.str();
     }
 

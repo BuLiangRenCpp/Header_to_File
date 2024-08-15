@@ -32,17 +32,17 @@ public:
     // - source: 临时文件对应的源文件路径 ( = "" 默认为 tmp_file 更换后缀名为 .h)
     // ! 原本想直接在 PreProcess 处理时在 tmp_file 中加上路径，但是这存在 bug:
     // !    .i 文件开始就是连续的 #file.h，那么调用 file() 返回的时最后一个
-    TokenStream(const path::Cfile& tmp_file);
+    TokenStream(const path::Path& tmp_file);
     ~TokenStream() = default;
 
 public:
     // 使用此接口的目的是:
     // * 后期优化程序时使用，读取过的文件不在读取，保留识别出的 type
-    void        open(const path::Cfile& tmp_file);
+    void        open(const path::Path& tmp_file);
     bool        eof() const { return _eof; }
     Token       get();
     Token       peek();
-    std::string file() const { return _file; }
+    FS::path    file() const { return _file; }
     line_t      line() const { return _line; }
     col_t       col() const { return _col; }
     std::string errors() const
@@ -59,18 +59,18 @@ private:
     std::ifstream            _ifs;
     bool                     _eof = true;
     Buffer<Token>            _buffer;
-    std::string              _file;       // 当前文件
+    FS::path                 _file;       // 当前文件
     line_t                   _line = 1;   // 当前行号
     col_t                    _col  = 0;   // 当前列号
-    std::vector<ExcepSyntax> _errors;
+    std::vector<CompilerError> _errors;
 
 private:
     struct Info {
-        std::string file;
+        FS::path file;
         line_t      line;
         col_t       col;
 
-        Info(const std::string& f, line_t l, col_t c) : file{f}, line{l}, col{c} {}
+        Info(const FS::path& f, line_t l, col_t c) : file{f}, line{l}, col{c} {}
     };
     // ---------------
     std::stack<Info> _stk;

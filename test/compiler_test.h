@@ -3,8 +3,7 @@
 #include <iomanip>
 
 #include "test.h"
-#include "../src/compiler/PreProcess.h"
-#include "../src/compiler/htf.h"
+#include "../src/core/htf.h"
 
 namespace htf
 {
@@ -15,18 +14,18 @@ namespace compiler_test
 
 // TEST(PreProcess_test)
 // {
-//     std::string path = R"(D:\code\git\Header_to_File\test\txt\pre.h)";
-//     std::string opath = R"(D:\code\git\Header_to_File\test\txt\pre.i)";
-//     std::string dir = R"(D:\code\git\Header_to_File\test\txt)";
-//     std::string inl1 = R"(D:\code\git\Header_to_File\test)";
-//     std::string inl2 = R"(D:\code\git\Header_to_File\src\cmdline)";
-//     std::string inl3 = R"(D:\code\git\Header_to_File\src)";
-//     std::string inl4 = R"(D:\code\git\Header_to_File\src\path)";
-//     std::vector<path::Dir> dirs{ inl1, inl2, inl3, inl4 };
-//     std::string s1 = R"(D:\code\git\Header_to_File\src\cmdline\Parse.h)";
-//     std::set<std::string> not_include{ s1 };
+//     FS::path path = R"(D:\code\git\Header_to_File\test\txt\pre.h)";
+//     FS::path opath = R"(D:\code\git\Header_to_File\test\txt\pre.i)";
+//     FS::path dir = R"(D:\code\git\Header_to_File\test\txt)";
+//     FS::path inl1 = R"(D:\code\git\Header_to_File\test)";
+//     FS::path inl2 = R"(D:\code\git\Header_to_File\src\cmdline)";
+//     FS::path inl3 = R"(D:\code\git\Header_to_File\src)";
+//     FS::path inl4 = R"(D:\code\git\Header_to_File\src\path)";
+//     std::vector<path::Path> dirs{ inl1, inl2, inl3, inl4 };
+//     FS::path s1 = R"(D:\code\git\Header_to_File\src\cmdline\Parse.h)";
+//     std::set<FS::path> not_include{ s1 };
 //     PreProcess pre(path, dirs, not_include); 
-//     if (!pre.run(opath, dir)) std::cout << pre.errors() << std::endl; 
+//     if (!pre.run()) std::cout << pre.errors() << std::endl; 
 //     pre.clear();
 // }
 
@@ -142,19 +141,21 @@ namespace compiler_test
 
 TEST(htf_test)
 {
-    std::string s1 = R"(D:\code\git\Header_to_File\src\compiler\Lex.h)";   
-    std::string s2 = R"(D:\code\git\Header_to_File\src\compiler\TokenStream.h)";
-    std::string s3 = R"(D:\code\git\Header_to_File\src\path\Dir.h)";
-    std::set<std::string> sources{ s1, s2, s3 };
-    // path::Cfile source = s1;
-    std::string inl1 = R"(D:\code\git\Header_to_File\test)";
-    std::string inl2 = R"(D:\code\git\Header_to_File\src\cmdline)";
-    std::string inl3 = R"(D:\code\git\Header_to_File\src)";
-    std::string inl4 = R"(D:\code\git\Header_to_File\src\path)";
-    path::Dir dir{R"(D:\code\git\Header_to_File\test\txt)"};
-    std::vector<path::Dir> dirs{ inl1, inl2, inl3, inl4 };
+    FS::path s1 = R"(D:\code\git\Header_to_File\src\compiler\Lex.h)";   
+    FS::path s2 = R"(D:\code\git\Header_to_File\src\compiler\TokenStream.h)";
+    FS::path s3 = R"(D:\code\git\Header_to_File\src\path\Path.h)";
+    FS::path s4 = R"(D:\code\git\Header_to_File\test\txt\pre.h)";
+    FS::path out{R"(D:\code\git\Header_to_File\test\txt\pre.cpp)"};
+    std::set<FS::path> sources{ s1, s2, s3 };
+    
+    FS::path inl1 = R"(D:\code\git\Header_to_File\src\compiler)";
+    FS::path inl2 = R"(D:\code\git\Header_to_File\src\cmdline)";
+    FS::path inl3 = R"(D:\code\git\Header_to_File\src)";
+    FS::path inl4 = R"(D:\code\git\Header_to_File\src\path)";
+    path::Path dir{R"(D:\code\git\Header_to_File\test\txt)"};
+    std::vector<path::Path> dirs{ inl1, inl2, inl3, inl4 };
     // header_to_file(source, R"(D:\code\git\Header_to_File\test\txt\Lex.cpp)", dirs);
-    header_to_file(sources, dir, dirs);
+    header_to_file(s4, out, dirs, true);
 }
 
 }

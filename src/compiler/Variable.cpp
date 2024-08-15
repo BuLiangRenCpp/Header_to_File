@@ -1,5 +1,6 @@
 #include "Variable.h"
 #include "assertions.h"
+#include "output.h"
 #include "usage.h"
 
 using namespace std;
@@ -18,6 +19,35 @@ Variable::Variable(const std::string& t, const std::string& n, const std::string
 
 namespace detail
 {
+
+// 移除顶层 const or ...
+static std::string remove_type_limit(const std::string& type)
+{
+    if (type.find("const") == 0) return type.substr(6);
+    if (type.find("static") == 0) return type.substr(7);
+    if (type.find("volatile") == 0) return type.substr(10);
+    return type;
+}
+
+static std::string remove_reference(const std::string& type)
+{
+    std::string res;
+    for (char c : type) {
+        if (c == '&') continue;
+        res.push_back(c);
+    }
+    return res;
+}
+
+static std::string remove_type_other(const std::string& type)
+{
+    return remove_reference(remove_type_limit(type));
+}
+
+bool is_similar_type(const std::string& type1, const std::string& type2)
+{
+    return remove_type_other(type1) == remove_type_other(type2);
+}
 
 std::string get_between_brackets(Lex& lex)
 {
@@ -56,11 +86,14 @@ std::string get_value(Lex& lex)
             lex.ignore_statement();
             return "";
         }
-        if (lexer.val == "{")
+        if (lexer.val == "{") {
+            lex.putback(lexer);
             res += get_between_brackets(lex);
+        }
         else if (lexer.kind == LexerKind::identifier || lexer.kind == LexerKind::type) {
             res += lexer.val;
-            if (lexer.val == "{") res += get_between_brackets(lex);
+            if (lex.peek().val == "{") 
+                res += get_between_brackets(lex);
         }
     }
     else if (lexer.val == "{") {
@@ -89,6 +122,7 @@ Variable get_variable(Lex& lex)
     if (peek.val == "=" || peek.val == "{") {
         res.val = get_value(lex);
     }
+    if (lex.peek() == ';') lex.get();
     return res;
 }
 

@@ -4,8 +4,9 @@ project(htf)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-if (D)
+if (DEBUG)
     set(CMAKE_BUILD_TYPE Debug)
+    add_compile_options("-DDEBUG=1")
 else()
     set(CMAKE_BUILD_TYPE Release)
 endif()
@@ -23,20 +24,15 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${BIN})
 set(INC 
     ${LIB}
     ${SRC}
-    # ${SRC}/stream 
     ${SRC}/path
     ${SRC}/compiler
-    ${SRC}/cmdline)
+    ${SRC}/cmdline
+    ${SRC}/core)
 
 include_directories(${INC})
 foreach(inc ${INC})   
     aux_source_directory(${inc} APP)
 endforeach()
-
-# user
-if (U)
-    add_compile_options("-DUSER=1")
-endif()
 
 if (TEST_BUILD)
     add_subdirectory(${TEST})

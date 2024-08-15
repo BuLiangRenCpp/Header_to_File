@@ -99,7 +99,7 @@ std::string Parse::errors() const
     std::ostringstream oss;
     int                i = 0;
     for (auto it : _errors) {
-        oss << "[" << (i++) << "] " << it.what() << std::endl;
+        oss << "[" << (i++) << "] " << it << std::endl;
     }
     return oss.str();
 }
@@ -107,17 +107,16 @@ std::string Parse::errors() const
 bool Parse::parse(int argc, char* const argv[])
 {
     init();
-    THROW_LOGIC_ERROR_IF(argc < 1, "cmdline::Parse::parse(..): argc must be more than 0");
+    THROW_EXCEP_CMDLINE_IF(argc < 1, "'argc' must be more than 0");
     if (_program.empty()) set_program_name(argv[0]);   // set_program_name 优先级最高
 
-    std::string where = "cmdline::Parse::parse(int, char**)";
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
         if (arg.empty()) continue;
         if (arg.substr(0, 1) != "-") {   // * 1. default option
             auto default_option = _options.default_option();
             if (default_option == nullptr) {
-                _errors.emplace_back(ExcepCmdline{where, "before" + mark(arg) + "need option"});
+                _errors.emplace_back("before" + mark(arg) + "need option");
                 continue;
             }
             default_option->push(arg);   // 如果是单值，那么后面的值会覆盖前面的值
@@ -134,9 +133,7 @@ bool Parse::parse(int argc, char* const argv[])
                 insert_look_up(option);
                 if (val.empty()) {   // 2.1.1 --option=  value
                     if (!option->has_value()) {
-                        _errors.emplace_back(ExcepCmdline{
-                            where,
-                            "no-value option" + mark("--" + opt) + "cannot use" + mark('=')});
+                        _errors.emplace_back("no-value option" + mark("--" + opt) + "cannot use" + mark('='));
                         continue;
                     }
                     set_value_after(i, argc, argv, option);
@@ -144,9 +141,7 @@ bool Parse::parse(int argc, char* const argv[])
                 else {   // 2.1.2 指定值
                     // * 多值: 应该使用 'option=v1 option=v2' or 'option v1 v2'
                     if (!option->has_value()) {
-                        _errors.emplace_back(ExcepCmdline{
-                            where,
-                            "no-value option" + mark("--" + opt) + "cannot use" + mark('=')});
+                        _errors.emplace_back("no-value option" + mark("--" + opt) + "cannot use" + mark('='));
                         continue;
                     }
                     if (!deal_spe_value(val)) continue;
@@ -178,7 +173,7 @@ bool Parse::parse(int argc, char* const argv[])
         }
         else {                         // * 3. short option
             if (arg.length() == 1) {   // '-'
-                _errors.emplace_back(ExcepCmdline{where, "missing short option after" + mark('-')});
+                _errors.emplace_back("missing short option after" + mark('-'));
                 continue;
             }
             char opt    = arg[1];
@@ -195,9 +190,7 @@ bool Parse::parse(int argc, char* const argv[])
                 }
                 else {   // 3.2.2 多值、单值
                     if (val[0] == '=') {
-                        _errors.emplace_back(ExcepCmdline{
-                            where,
-                            mark('=') + "required use option" + mark("--" + option->name())});
+                        _errors.emplace_back(mark('=') + "required use option" + mark("--" + option->name()));
                         continue;
                     }
                     if (!deal_spe_value(val)) continue;
@@ -225,9 +218,7 @@ void Parse::check()
     auto must_options = _options.must_options();
     for (char it : must_options) {
         if (!_look_up.count(it)) {
-            _errors.emplace_back(
-                ExcepCmdline{"cmdline::Parse::check",
-                             "lack of must option" + mark("--" + _options.get_name(it))});
+            _errors.emplace_back("lack of must option" + mark("--" + _options.get_name(it)));
         }
     }
 }
@@ -244,7 +235,6 @@ bool Parse::is_spe_ch(char c)
 
 void Parse::set_value_after(int& i, int argc, char* const argv[], OptionBase* option, bool is_short)
 {
-    std::string where = "cmdline::Parse::set_value_after(.....)";
     ++i;
     if (i == argc)
         deal_end(option, is_short);
@@ -262,8 +252,7 @@ void Parse::set_value_after(int& i, int argc, char* const argv[], OptionBase* op
                     return;
                 }
                 if (is_short && value[0] == '=') {
-                    _errors.emplace_back(ExcepCmdline{
-                        where, mark('=') + "required use option" + mark("--" + option->name())});
+                    _errors.emplace_back(mark('=') + "required use option" + mark("--" + option->name()));
                     return;
                 }
                 if (deal_spe_value(value)) {
@@ -282,8 +271,7 @@ void Parse::set_value_after(int& i, int argc, char* const argv[], OptionBase* op
                 value = argv[i];
             }
             if (is_short && value[0] == '=') {
-                _errors.emplace_back(ExcepCmdline{
-                    where, mark('=') + "required use option" + mark("--" + option->name())});
+                _errors.emplace_back( mark('=') + "required use option" + mark("--" + option->name()));
                 return;
             }
             if (deal_spe_value(value)) {
@@ -295,15 +283,12 @@ void Parse::set_value_after(int& i, int argc, char* const argv[], OptionBase* op
 
 bool Parse::deal_spe_value(std::string& value)
 {
-    std::string where = "cmdline::Parse::deal_spe_value";
     if (value.length() >= 1) {
         if (is_spe_ch(value[0])) {
-            _errors.emplace_back(
-                ExcepCmdline{where,
-                             mark(value) + ": the value[0] =" + mark(value[0]) +
+            _errors.emplace_back(mark(value) + ": the value[0] =" + mark(value[0]) +
                                  "is special char which required use" +
                                  mark(std::string{Escape_Char} + std::string{value[0]}) +
-                                 "to replace" + mark(value[0])});
+                                 "to replace" + mark(value[0]));
             return false;
         }
         if (value.length() > 1 && value[0] == Escape_Char && is_spe_ch(value[1])) {   // 转义字符
@@ -316,12 +301,11 @@ bool Parse::deal_spe_value(std::string& value)
 void Parse::deal_end(OptionBase* option, bool is_short)
 {
     if (!option->empty()) return;
-    std::string where = "cmdline::Parse::deal_end(...)";
     std::string opt = (is_short) ? "-" + std::string{option->short_name()} : "--" + option->name();
     if (option->is_more_value()) {   // 1. 多值
         auto default_value = option->default_vals();
         if (default_value.empty()) {   // 无默认值
-            _errors.emplace_back(ExcepCmdline{where, "missing values after option" + mark(opt)});
+            _errors.emplace_back("missing values after option" + mark(opt));
             return;
         }
         option->set_value(default_value);
@@ -332,7 +316,7 @@ void Parse::deal_end(OptionBase* option, bool is_short)
         }
         auto default_value = option->default_val();   // 2.2 单值
         if (default_value.empty()) {                  // 无默认值
-            _errors.emplace_back(ExcepCmdline{where, "missing value after option" + mark(opt)});
+            _errors.emplace_back("missing value after option" + mark(opt));
             return;
         }
         option->set_value(default_value);
@@ -341,14 +325,12 @@ void Parse::deal_end(OptionBase* option, bool is_short)
 
 void Parse::deal_noval_together(const std::string& arg)
 {
-    std::string where = "cmdline::Parse::deal_noval_together";
     for (int j = 2; j < arg.length(); ++j) {
         auto option = get_option(arg[j]);
         if (option == nullptr) return;
         if (option->has_value()) {
-            _errors.emplace_back(ExcepCmdline{where,
-                                              "valuable option" + mark("-" + std::string{arg[j]}) +
-                                                  "shoule to replace" + mark(arg)});
+            _errors.emplace_back("valuable option" + mark("-" + std::string{arg[j]}) +
+                "shoule to replace" + mark(arg));
             continue;
         }
         insert_look_up(option, arg[j]);
@@ -361,8 +343,7 @@ void Parse::insert_look_up(OptionBase* option, bool is_short)
         if (_look_up.count(option->short_name())) {
             std::string opt =
                 (is_short) ? "-" + std::string{option->short_name()} : "--" + option->name();
-            _errors.emplace_back(ExcepCmdline{"cmdline::Parse::insert_look_up",
-                                              "option" + mark(opt) + "is ambiguous"});
+            _errors.emplace_back("option" + mark(opt) + "is ambiguous");
             return;
         }
     }
@@ -372,8 +353,7 @@ void Parse::insert_look_up(OptionBase* option, bool is_short)
 OptionBase* Parse::get_option(const std::string& name)
 {
     if (!_options.exist(name)) {
-        _errors.emplace_back(ExcepCmdline{"cmdline::Parse::get_option(.)",
-                                          "unrecognized command-line option" + mark("--" + name)});
+        _errors.emplace_back("unrecognized command-line option" + mark("--" + name));
         return nullptr;
     }
     return _options.get_option(name);
@@ -382,9 +362,7 @@ OptionBase* Parse::get_option(const std::string& name)
 OptionBase* Parse::get_option(char short_name)
 {
     if (!_options.exist(short_name)) {
-        _errors.emplace_back(ExcepCmdline{
-            "cmdline::Parse::get_option(.)",
-            "unrecognized command-line short option" + mark("-" + std::string{short_name})});
+        _errors.emplace_back("unrecognized command-line short option" + mark("-" + std::string{short_name}));
         return nullptr;
     }
     return _options.get_option(short_name);

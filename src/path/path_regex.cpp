@@ -54,32 +54,6 @@ bool is_match_path(const FS::path& path, std::string p)
            s.find('/', s_index) == std::string::npos;
 }
 
-// 将路径分隔符统一化
-static std::string legal_pattern(const std::string& pattern)
-{
-    FS::path res;
-    auto     len  = pattern.size();
-    int      left = 0;
-    // 不知道什么原因: FS::path \ 处理 D: \ dir == D:dir，而且 D:dir 不存在(即便 D:\\dir 时存在的)
-    int i = 0;
-    if (pattern.length() > 3 && pattern[1] == ':' && pattern[2] == FS::path::preferred_separator) {
-        res  = pattern.substr(0, 3);
-        left = 3;
-        i    = 3;
-    }
-    for (; i < len; ++i) {   //   /a\b\ .
-        if (pattern[i] == '/' || pattern[i] == '\\') {
-            res  = res / pattern.substr(left, i - left);
-            left = i + 1;
-        }
-    }
-    if (left < len)
-        res = res / pattern.substr(left, len - left);
-    else if (left == len)
-        res = res / "";
-    return res.string();
-}
-
 // 返回第一次出现通配符的路径所在的目录 (绝对路径)
 // first: parent
 // seconde: 通配符出现的部分
@@ -106,9 +80,7 @@ static std::pair<FS::path, std::string> pattern_split(const std::string& pattern
     std::string sub = (separator_index == std::string::npos)   // 丢弃分隔符
                           ? pattern.substr(parent_str.size())
                           : pattern.substr(parent_str.size() + 1);
-    if (!FS::is_directory(parent))
-        throw ExcepPath{
-            "path_regex.cpp::pattern_split(.)", parent.string(), PathErrors::not_exist_dir};
+    THROW_EXCEP_PATH_IF(!FS::is_directory(parent), parent, ExcepPath::ErrorCode::not_exist_directory);
     return std::make_pair(FS::canonical(parent), sub);
 }
 
@@ -116,7 +88,7 @@ static std::pair<FS::path, std::string> pattern_split(const std::string& pattern
 // ../*.h
 std::set<std::string> path_regex(std::string pattern, bool is_dir)
 {
-    pattern = legal_pattern(pattern);
+    pattern = FS::path{pattern}.lexically_normal().string();
     std::set<std::string> res;
     auto                  tmp         = pattern_split(pattern);
     FS::path              parent      = tmp.first;
@@ -133,19 +105,20 @@ std::set<std::string> path_regex(std::string pattern, bool is_dir)
         if (is_match_path(relative, sub_pattern)) {
             if (is_dir) {
                 if (!FS::is_directory(p)) {
-                    cout_warn("it's not a directory" + mark(p.string()));
+                    cout_warn("it's not a directory" + mark_path(p));
                     continue;
                 }
             }
             else {
                 if (FS::is_directory(p)) {
-                    cout_warn("it's a directory" + mark(p.string()));
+                    cout_warn("it's a directory" + mark_path(p));
                     continue;
                 }
             }
             res.emplace(std::move(p.string()));
         }
     }
+    // for (auto it : res) std::cerr << "--------------------------- path_regex: " << it << std::endl;
     return res;
 }
 

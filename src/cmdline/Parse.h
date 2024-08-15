@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "Option.h"
-#include "exceptdef.h"
+#include "using.h"
 
 namespace htf
 {
@@ -127,7 +127,7 @@ private:
     Option         _options;   // 存储 add 加入的 option，相当于是解析规则
     std::set<char> _look_up;   // 存储 parse 解析过程中，解析到的 option (short_name)
     std::string    _program           = "";   // 程序名称
-    std::vector<ExcepCmdline> _errors = {};
+    std::vector<std::string> _errors = {};
 };
 
 }   // namespace cmdline

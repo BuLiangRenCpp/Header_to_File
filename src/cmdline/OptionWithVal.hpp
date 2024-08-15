@@ -124,7 +124,7 @@ private:
     std::string _name;
     char        _sname;
     std::string _desc;
-    OptionValue<value_type> _val;   // 实际值   // ! 后续看是否要扩展使得 第一次初始化时 val = ""
+    OptionValue<value_type> _val;   // 实际值   
     bool                    _is_default;
     OptionValue<value_type> _default_val;
 };

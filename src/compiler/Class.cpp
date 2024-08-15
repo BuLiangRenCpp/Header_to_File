@@ -1,5 +1,6 @@
 #include "Class.h"
 #include "usage.h"
+#include "output.h"
 
 namespace htf
 {
@@ -26,30 +27,48 @@ std::string Class::str() const
             oss << destructor_str(i);
         else {
             oss << f.ret_type << " " << _name << "::" << f.name << f.args_str() << " " << f.limits
-                << Function_Brackets_Str;
+                << HTF_Function_Brackets_Str;
         }
         oss << "\n";
     }
     return oss.str();
 }
 
-std::string Class::constructor_str(int i) const
+
+static int find_similar_type(const std::string& type, const std::vector<Variable>& args, std::set<int>& visited)
+{
+    int i = 0;
+    auto size = args.size();
+    for (; i < size; ++i) {     // 需要从前往后遍历，即默认先出现的先匹配
+        if (!visited.count(i) && detail::is_similar_type(type, args[i].type)) {
+            visited.emplace(i);
+            break;
+        }
+    }
+    return (i == size) ? -1 : i;
+}
+
+std::string Class::constructor_str(int index) const
 {
     std::ostringstream oss;
-    auto               f = _funs[i];
+    auto               f = _funs[index];
     oss << _name << "::" << f.ret_type << f.args_str();
     bool is_default = f.args.empty();
     auto size       = _vars.size();
     if (size > 0) oss << "\n\t: ";
+    std::set<int> visited;  // 已经使用过 用来填充参数 的下标不再使用
     for (int i = 0; i < size; ++i) {
         if (is_default)
             oss << _vars[i].name << "{ " << _vars[i].val << " }";
-        else
-            oss << _vars[i].name << "{ "
-                << " }";   // * 后续在增加参数填充
+        else {
+            int tmp = find_similar_type(_vars[i].type, f.args, visited);
+            std::string val = "";    // 填充参数列表}
+            if (tmp != -1) val = f.args[tmp].name;
+            oss << _vars[i].name << "{ " << val << " }"; 
+        }
         if (i < size - 1) oss << ", ";
     }
-    oss << Function_Brackets_Str;
+    oss << HTF_Function_Brackets_Str;
     return oss.str();
 }
 
@@ -57,7 +76,7 @@ std::string Class::destructor_str(int i) const
 {
     std::ostringstream oss;
     auto               f = _funs[i];
-    oss << _name << "::~" << f.ret_type << "()" << Function_Brackets_Str;
+    oss << _name << "::~" << f.ret_type << "()" << HTF_Function_Brackets_Str;
     return oss.str();
 }
 

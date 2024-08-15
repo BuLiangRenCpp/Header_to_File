@@ -3,14 +3,23 @@
 // 输出提示信息：对信息添加颜色、格式等 (用于用户)
 
 #include <iostream>
+#include "usage_base.h"
+#include "using.h"
 
 namespace htf
 {
 
-// 在 s 前后加上 c 后，同时在前后各加一个空格
-// 用于标记输出中的特别字符，加以强调
-std::string mark(const std::string& s, char c = '\'');
-std::string mark(char s, char c = '\'');
+std::string mark(char str, char c = '\'');
+
+std::string mark(const std::string& str, char c = '\'');
+
+inline std::string mark_path(const FS::path& path)
+{
+    std::ostringstream oss;
+    oss << " [ " << path.string() <<" ] ";
+    return oss.str();
+}
+
 
 // - 带 "" 之前的内容为 reset，其余有颜色
 // - 各自具有一定格式

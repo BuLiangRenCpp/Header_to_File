@@ -13,16 +13,16 @@ class Parse
 public:
     // 单文件处理
     // tmp_file 必须是 PreProcess 处理后的文件
-    Parse(const path::Cfile& tmp_file, const path::Cfile& source);
+    Parse(const path::Path& tmp_file, const FS::path& source);
     // 多文件处理
     // * 注意 tmp_files 顺序，否则可能处理错误 (type 被识别为 id)
-    Parse(const std::vector<path::Cfile>& tmp_files, const std::set<std::string>& sources);
+    Parse(const std::vector<path::Path>& tmp_files, const std::set<FS::path>& sources);
     ~Parse() = default;
 
 public:
-    void run(const std::string& output_path, bool is_force = false);
+    void run1(FS::path output_path, bool is_force = false);
     // is_force: 当文件存在时是否覆盖，默认不覆盖
-    void run(const path::Dir& output_dir, bool is_force = false);
+    void run(const path::Path& output_dir, bool is_force = false);
 
     std::string errors() const
     {
@@ -35,15 +35,15 @@ public:
     }
 
 private:
-    void write_single_file(const std::string& ofile);
+    void write_single_file(const FS::path& ofile);
     void deal_class(Ofstream& ofs);
     void deal_function(Ofstream& ofs);
 
 private:
-    std::vector<path::Cfile> _tmp_files;
+    std::vector<path::Path> _tmp_files;
     Lex                      _lex;
-    std::set<std::string>    _sources;
-    std::vector<ExcepSyntax> _errors;
+    std::set<FS::path>    _sources;
+    std::vector<CompilerError> _errors;
 };
 
 }   // namespace htf

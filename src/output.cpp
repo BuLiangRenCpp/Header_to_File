@@ -3,25 +3,30 @@
 
 #include "base_info.h"
 #include "color.h"
+#include "usage_base.h"
 
 using namespace std;
 
 namespace htf
 {
-
-std::string mark(const std::string& s, char c)
+std::string mark(char str, char c)
 {
-    ostringstream oss;
-    oss << " " << c << s << c << " ";
+    std::ostringstream oss;
+    char end = c;
+    if (is_lbracket(c)) end = ret_rbracket(c);
+    oss << " " << c << str << end << " ";
     return oss.str();
 }
 
-std::string mark(char s, char c)
+std::string mark(const std::string& str, char c)
 {
-    ostringstream oss;
-    oss << " " << c << s << c << " ";
+    std::ostringstream oss;
+    char end = c;
+    if (is_lbracket(c)) end = ret_rbracket(c);
+    oss << " " << c << str << end << " ";
     return oss.str();
 }
+
 
 void cout_log(const std::string& what)
 {

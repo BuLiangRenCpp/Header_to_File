@@ -42,11 +42,9 @@ public:
         }
         return (oss.str().empty()) ? "" : oss.str().substr(1);
     }
+    
     void set_value(const value_type& value)
     {
-        THROW_LOGIC_ERROR_IF(is_more_value(),
-                             "OptionValue::set_value(const value_type&): this is a "
-                             "more-value, don't use single-value function");
         _val.clear();
         _val.emplace_back(value);
     }
@@ -67,9 +65,6 @@ public:
 
     void set_value(const std::vector<value_type>& values)
     {
-        THROW_LOGIC_ERROR_IF(!is_more_value(),
-                             "OptionValue::set_value(const vector<value_type>&): "
-                                 << "this is a single-value, don't use more-value function");
         _val = values;
     }
 

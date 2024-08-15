@@ -1,5 +1,6 @@
 #include "Lexer.h"
 
+#include "output.h"
 #include "assertions.h"
 
 namespace htf
@@ -28,7 +29,7 @@ Lexer::Lexer(const Token& token)
         HTF_DEV_ASSERT_MESSAGE(false,
                                "Lexer::Lexer(.): the token.kind don't cast to lexer kind: "
                                    << static_cast<int>(token.kind) << ":"
-                                   << HTF_DEV_MARK(token.val));
+                                   << mark(token.val));
         break;
     }
 }

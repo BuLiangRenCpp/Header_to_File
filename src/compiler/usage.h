@@ -1,25 +1,15 @@
 #pragma once
 
 #include <string>
+#include "usage_base.h"
 
 namespace htf
 {
 
-// 是否是左括号
-bool is_lbracket(char c);
 bool is_lbracket(const std::string& ch);
-
-// 是否是右括号
-bool is_rbracket(char c);
 bool is_rbracket(const std::string& ch);
-
-bool is_bracket(char c);
 bool is_bracket(const std::string& ch);
-
-char ret_lbracket(char c);
 char ret_lbracket(const std::string& ch);
-
-char ret_rbracket(char);
 char ret_rbracket(const std::string& ch);
 
 bool is_dchar(const std::string& dchar);
@@ -48,6 +38,11 @@ inline bool is_using_key(const std::string& str)
 inline bool is_class_limit_key(const std::string& str)
 {
     return str == "public" || str == "protected" || str == "private";
+}
+
+inline bool is_type_limit_key(const std::string& str)
+{
+    return str == "const" || str == "static" || str == "volatile";
 }
 
 // 是否是可以出现在 id 中的字符: alnum and '_'

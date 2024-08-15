@@ -21,16 +21,16 @@ public:
     Lex() = default;
     // - tmp_file: 指定打开的文件 (必须是 Preprocess 文件)
     // - sources: 指定需要读取的源文件 (不是临时文件)，不能为空
-    Lex(const path::Cfile& tmp_file, const std::set<std::string>& sources);
+    Lex(const path::Path& tmp_file, const std::set<FS::path>& sources);
     ~Lex() = default;
 
 public:
     // 打开 PreProcess 的临时文件
     // - _types 不会丢失
-    void open(const path::Cfile& tmp_file, const std::set<std::string>& sources);
+    void open(const path::Path& tmp_file, const std::set<FS::path>& sources);
 
     bool        eof() const { return _eof; }
-    std::string file() const { return _file; }
+    FS::path    file() const { return _file; }
     line_t      line() const { return _ts.line(); }
     col_t       col() const { return _ts.col(); }
     std::string errors() const
@@ -66,10 +66,10 @@ public:
 private:
     TokenStream              _ts;
     bool                     _eof     = true;
-    std::string              _file    = "";   // 当前正在处理的源文件
-    std::set<std::string>    _sources = {};
+    FS::path                 _file    = "";   // 当前正在处理的源文件
+    std::set<FS::path>    _sources = {};
     Buffer<Lexer>            _buffer;
-    std::vector<ExcepSyntax> _errors;
+    std::vector<CompilerError> _errors;
     TypeTable                _types;
 
 private:

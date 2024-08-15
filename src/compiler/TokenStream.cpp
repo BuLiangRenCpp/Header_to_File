@@ -1,7 +1,7 @@
 #include "TokenStream.h"
 
-#include "ExcepSyntax.h"
 #include "assertions.h"
+#include "ExcepPath.h"
 #include "usage.h"
 
 using namespace std;
@@ -9,32 +9,31 @@ using namespace std;
 namespace htf
 {
 
-TokenStream::TokenStream(const path::Cfile& tmp_file)
-    : _ifs{tmp_file.str()}, _eof{false}, _file{}, _line{1}, _col{0}, _errors{}, _stk{}
+TokenStream::TokenStream(const path::Path& tmp_file)
+    : _ifs{ tmp_file.path() }, _eof{ false }, _file{}, _line{1}, _col{0}, _errors{}, _stk{}
 {
     HTF_DEV_ASSERT_MESSAGE(_ifs.good(), "TokenStream::TokenStream(.): bad ifstream");
     string str;
     getline(_ifs, str);
-    HTF_DEV_ASSERT_MESSAGE(str == HTF_PRE_ID,
-                           "TokenStream::TokenStream(.): not htf temp file" << HTF_DEV_MARK(_file));
+    HTF_DEV_ASSERT_MESSAGE(str == HTF_PreProcess_File_Id,
+                           "TokenStream::TokenStream(.): not htf temp file" << mark_path(_file));
     getline(_ifs, str);
     HTF_DEV_ASSERT_MESSAGE(str.length() > 2 && str.substr(0, 2) == "##",
                            "TokenStream::TokenStream(.): htf temp file: line 2 must be"
-                               << HTF_DEV_MARK("##path"));
+                               << mark("##path"));
     _file = str.substr(2);
     HTF_DEV_ASSERT_MESSAGE(FS::exists(_file), "TokenStream::TokenStream(..): source must be exist");
 }
 
-void TokenStream::open(const path::Cfile& tmp_file)
+void TokenStream::open(const path::Path& tmp_file)
 {
     _ifs.close();
-    _ifs.open(tmp_file.str());
-    if (!_ifs.is_open())
-        throw path::ExcepPath{"TokenStream::open(.)", _file, path::PathErrors::not_open_file};
+    _ifs.open(tmp_file.path());
+    THROW_EXCEP_PATH_IF(!_ifs.is_open(), tmp_file.path(), path::ExcepPath::ErrorCode::not_open_file);
     string str;
     getline(_ifs, str);
-    HTF_DEV_ASSERT_MESSAGE(str == HTF_PRE_ID,
-                           "TokenStream::open(.): not htf temp file" << HTF_DEV_MARK(_file));
+    HTF_DEV_ASSERT_MESSAGE(str == HTF_PreProcess_File_Id,
+                           "TokenStream::open(.): not htf temp file" << mark_path(_file));
     _line = 1;
     _col  = 0;
     _eof  = false;
@@ -43,9 +42,10 @@ void TokenStream::open(const path::Cfile& tmp_file)
     getline(_ifs, str);
     HTF_DEV_ASSERT_MESSAGE(str.length() > 2 && str.substr(0, 2) == "##",
                            "TokenStream::open(.): htf temp file: line 2 must be"
-                               << HTF_DEV_MARK("##path"));
+                               << mark("##path"));
     _file = str.substr(2);
-    HTF_DEV_ASSERT_MESSAGE(FS::exists(_file), "TokenStream::TokenStream(..): source must be exist");
+    HTF_DEV_ASSERT_MESSAGE(FS::exists(_file), 
+        "TokenStream::TokenStream(..): source must be exist" + mark_path(_file));
 }
 
 Token TokenStream::get()
@@ -153,7 +153,7 @@ void TokenStream::deal_pre()
     }
     if (s == "end") {
         HTF_DEV_ASSERT_MESSAGE(
-            !_stk.empty(), "TokenStream::deal_pre(): there are some errors in the PreProcess file");
+            !_stk.empty(), "TokenStream::deal_pre(): preprocess file have too much" << mark("#end") << mark_path(_file));
         auto top = _stk.top();
         _file    = top.file;
         _line    = top.line;
@@ -245,8 +245,8 @@ string TokenStream::get_float()
             res += get_decimal();
         }
         else {
-            _errors.emplace_back(ExcepSyntax{
-                _file, _line, _col, "bad float number" + mark(res), SyntaxError::bad_token});
+            _errors.emplace_back(CompilerError{
+                _file, _line, _col, "bad float number" + mark(res), CompilerError::ErrorCode::bad_token});
         }
     }
     // float-suffix
@@ -292,8 +292,8 @@ std::string TokenStream::get_binary()
         num.push_back(c);
     }
     if (res == false)
-        _errors.emplace_back(ExcepSyntax{
-            _file, _line, _col, "bad binary number" + mark(num), SyntaxError::bad_token});
+        _errors.emplace_back(CompilerError{
+            _file, _line, _col, "bad binary number" + mark(num), CompilerError::ErrorCode::bad_token});
     return num;
 }
 
@@ -309,8 +309,8 @@ std::string TokenStream::get_octal()
         }
         if (!isdigit(c)) {
             if (res == false && c != '.') {
-                _errors.emplace_back(ExcepSyntax{
-                    _file, _line, _col, "bad octal number" + mark(num), SyntaxError::bad_token});
+                _errors.emplace_back(CompilerError{
+                    _file, _line, _col, "bad octal number" + mark(num), CompilerError::ErrorCode::bad_token});
             }
             _ifs.putback(c);
             break;
